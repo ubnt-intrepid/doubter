@@ -1,0 +1,16 @@
+[package]
+name = "doubter"
+version = "0.0.1-dev"
+authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
+publish = false
+description = """
+Yet another tools for testing Rust codeblock in Markdown.
+"""
+
+[lib]
+name = "doubter"
+path = "lib.rs"
+
+[dependencies]
+proc-macro-hack = "0.4"
+doubter-impl = { version = "0.0.1-dev", path = "../doubter-impl" }

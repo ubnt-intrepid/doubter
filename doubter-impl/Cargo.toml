@@ -1,0 +1,16 @@
+[package]
+name = "doubter-impl"
+version = "0.0.1-dev"
+authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
+publish = false
+
+[lib]
+name = "doubter_impl"
+path = "lib.rs"
+proc-macro = true
+
+[dependencies]
+proc-macro-hack = "0.4"
+syn = { version = "0.15", features = ["full", "extra-traits"] }
+quote = "0.6"
+proc-macro2 = "0.4.20"
