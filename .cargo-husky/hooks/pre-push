@@ -5,10 +5,6 @@ set -e
 BRANCH="$(git symbolic-ref --short HEAD)"
 [[ "${BRANCH:-}" = wip-* ]] && exit 0
 
-echo '+cargo test'
-cargo test --all
-
-if which cargo-fmt >/dev/null 2>&1; then
-    echo '+cargo fmt -- --check'
-    cargo fmt -- --check
-fi
+(set -x; cargo test)
+(set -x; cargo test -p doubter-impl)
+(set -x; cargo test -p test-doubter)
