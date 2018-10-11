@@ -1,7 +1,7 @@
 # `doubter`
 
 [![crates.io](https://img.shields.io/crates/v/doubter.svg)](https://crates.io/crates/doubter)
-[![Docs.rs](https://docs.rs/doubter)](https://docs.rs/doubter)
+[![Docs.rs](https://docs.rs/doubter/badge.svg)](https://docs.rs/doubter)
 [![Build Status](https://travis-ci.org/ubnt-intrepid/doubter.svg?branch=master)](https://travis-ci.org/ubnt-intrepid/doubter)
 
 A helper crate for testing Rust code blocks in Markdown.
