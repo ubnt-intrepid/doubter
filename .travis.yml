@@ -11,3 +11,4 @@ matrix:
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all
+  - if [[ "${TRAVIS_RUST_VERSION}" = "stable" ]]; then rustup component add rustfmt-preview && cargo fmt -- --check; fi

@@ -1,8 +1,10 @@
 [package]
 name = "doubter-impl"
-version = "0.0.1-dev"
+version = "0.0.1"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
-publish = false
+license = "MIT"
+repository = "https://github.com/ubnt-intrepid/doubter.git"
+description = "Procedural macros for doubter"
 
 [lib]
 proc-macro = true

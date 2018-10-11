@@ -1,3 +1,7 @@
+//! A helper crate for testing Rust code blocks in Markdown.
+
+#![doc(html_root_url = "https://docs.rs/doubter/0.0.1")]
+
 #[macro_use]
 extern crate proc_macro_hack;
 
@@ -8,6 +12,5 @@ extern crate doubter_impl;
 pub use doubter_impl::*;
 
 proc_macro_item_decl! {
-    /// Insert a code for testing doctest.
     doubter! => doubter_impl
 }
