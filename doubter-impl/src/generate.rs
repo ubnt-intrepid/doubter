@@ -52,12 +52,11 @@ impl<'a> Context<'a> {
         let items = self
             .markdown_files()
             .map(|file| {
-                let constant_name = Ident::new(&file.escaped_file_name(), Span::call_site());
-                let content = file.read_content()?;
-                Ok(quote!(
-                    #[doc = #content]
-                    pub const #constant_name : () = ();
-                ))
+                if cfg!(feature = "external-doc") {
+                    file.render_with_external_doc()
+                } else {
+                    file.render()
+                }
             }).collect::<io::Result<Vec<_>>>()?;
 
         Ok(quote!(
@@ -73,12 +72,30 @@ struct MarkdownFile<'a, 'c> {
 }
 
 impl<'a, 'c> MarkdownFile<'a, 'c> {
+    fn render(&self) -> io::Result<TokenStream> {
+        let constant_name = Ident::new(&self.escaped_file_name(), Span::call_site());
+        let path = self.resolve_path()?;
+        let content = fs::read_to_string(path)?;
+        Ok(quote!(
+            #[doc = #content]
+            pub const #constant_name : () = ();
+        ))
+    }
+
+    fn render_with_external_doc(&self) -> io::Result<TokenStream> {
+        let constant_name = Ident::new(&self.escaped_file_name(), Span::call_site());
+        let path = self.resolve_path()?.display().to_string();
+        Ok(quote!(
+            #[doc(include = #path)]
+            pub const #constant_name : () = ();
+        ))
+    }
+
     fn escaped_file_name(&self) -> String {
         self.input.value.value().replace('/', "_").replace('.', "_")
     }
 
-    fn read_content(&self) -> io::Result<String> {
-        let doc_path = self.root_dir.join(self.input.value.value());
-        fs::read_to_string(&doc_path)
+    fn resolve_path(&self) -> io::Result<PathBuf> {
+        self.root_dir.join(self.input.value.value()).canonicalize()
     }
 }

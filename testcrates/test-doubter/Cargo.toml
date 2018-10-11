@@ -1,8 +1,8 @@
 [package]
-name = "testcrate"
-version = "0.1.0"
+name = "test-doubter"
+version = "0.0.0"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 publish = false
 
 [dependencies]
-doubter = { path = ".." }
+doubter = { path = "../.." }
