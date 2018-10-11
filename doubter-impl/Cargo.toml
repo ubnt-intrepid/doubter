@@ -5,8 +5,6 @@ authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 publish = false
 
 [lib]
-name = "doubter_impl"
-path = "lib.rs"
 proc-macro = true
 
 [dependencies]
