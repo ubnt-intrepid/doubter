@@ -1,7 +1,6 @@
 use std::env;
 use std::fs;
 use std::io;
-use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
 use proc_macro2::{Span, TokenStream};
@@ -12,65 +11,74 @@ use parsing::{Input, KeyValue};
 #[derive(Debug)]
 pub struct Context<'a> {
     input: &'a Input,
+    root_dir: Option<PathBuf>,
     _priv: (),
 }
 
 impl<'a> Context<'a> {
     pub fn new(input: &'a Input) -> Context<'a> {
-        Context { input, _priv: () }
+        Context {
+            input,
+            root_dir: None,
+            _priv: (),
+        }
     }
 
-    fn markdown_files<'c>(&'c self) -> impl Iterator<Item = MarkdownFile<'a>> + 'c {
-        self.input.files.iter().map(|input| {
-            assert_eq!(input.key, "file");
-            MarkdownFile { input }
-        })
+    fn markdown_files<'c>(&'c self) -> impl Iterator<Item = MarkdownFile<'a, 'c>> + 'c {
+        let root_dir = self.root_dir.as_ref().expect("should be initialized");
+        self.input
+            .files
+            .iter()
+            .filter(|input| input.key == "file")
+            .map(move |input| MarkdownFile { input, root_dir })
     }
 
-    fn root_dir(&self) -> PathBuf {
-        env::var("CARGO_MANIFEST_DIR").map(PathBuf::from).unwrap()
+    fn init_root_dir(&mut self) -> io::Result<()> {
+        if self.root_dir.is_some() {
+            return Ok(());
+        }
+
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR")
+            .map(PathBuf::from)
+            .map_err(|kind| io::Error::new(io::ErrorKind::Other, kind))?;
+
+        self.root_dir = Some(manifest_dir);
+        Ok(())
     }
 
-    pub fn run(&mut self) -> TokenStream {
-        let root_dir = self.root_dir();
+    pub fn run(&mut self) -> io::Result<TokenStream> {
+        self.init_root_dir()?;
 
         let items = self
             .markdown_files()
             .map(|file| {
-                let ident = file.ident();
-                let lines = file
-                    .read_lines(&root_dir)
-                    .expect("failed to read a markdown file");
-                quote!(
-                    #(#[doc = #lines])*
-                    #[allow(dead_code)]
-                    pub const #ident : () = ();
-                )
-            }).collect::<Vec<_>>();
+                let constant_name = Ident::new(&file.escaped_file_name(), Span::call_site());
+                let content = file.read_content()?;
+                Ok(quote!(
+                    #[doc = #content]
+                    pub const #constant_name : () = ();
+                ))
+            }).collect::<io::Result<Vec<_>>>()?;
 
-        quote!(
+        Ok(quote!(
             #(#items)*
-        )
+        ))
     }
 }
 
 #[derive(Debug)]
-struct MarkdownFile<'a> {
+struct MarkdownFile<'a, 'c> {
     input: &'a KeyValue,
+    root_dir: &'c Path,
 }
 
-impl<'a> MarkdownFile<'a> {
-    fn ident(&self) -> Ident {
-        let escaped_name = self.input.value.value().replace('/', "_").replace('.', "_");
-        Ident::new(
-            &format!("doubter_doctest_{}", escaped_name),
-            Span::call_site(),
-        )
+impl<'a, 'c> MarkdownFile<'a, 'c> {
+    fn escaped_file_name(&self) -> String {
+        self.input.value.value().replace('/', "_").replace('.', "_")
     }
 
-    fn read_lines(&self, root_dir: impl AsRef<Path>) -> io::Result<Vec<String>> {
-        let doc_path = root_dir.as_ref().join(self.input.value.value());
-        let file = fs::OpenOptions::new().read(true).open(doc_path)?;
-        BufReader::new(file).lines().collect()
+    fn read_content(&self) -> io::Result<String> {
+        let doc_path = self.root_dir.join(self.input.value.value());
+        fs::read_to_string(&doc_path)
     }
 }
