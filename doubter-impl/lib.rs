@@ -44,39 +44,35 @@ impl syn::parse::Parse for Input {
 }
 
 proc_macro_item_impl! {
-    pub fn doctest_impl(input: &str) -> String {
-        doctest_inner(input).to_string()
+    pub fn doubter_impl(input: &str) -> String {
+        let input: Input = syn::parse_str(input).unwrap();
+
+        let mut items = vec![];
+        for file in input.files {
+            assert_eq!(file.key, "file");
+
+            let escaped_name = file.value.value().replace('/', "_").replace('.', "_");
+            let ident = syn::Ident::new(
+                &format!("doubter_doctest_{}", escaped_name),
+                Span::call_site(),
+            );
+
+            let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").map(PathBuf::from).unwrap();
+            let doc_path = cargo_manifest_dir.join(file.value.value());
+
+            let file = fs::OpenOptions::new().read(true).open(doc_path).unwrap();
+            let file = BufReader::new(file);
+            let lines: Vec<String> = file.lines().collect::<io::Result<Vec<String>>>().unwrap();
+
+            items.push(quote!(
+                #(#[doc = #lines])*
+                #[allow(dead_code)]
+                pub const #ident : () = ();
+            ));
+        }
+
+        quote!(
+            #(#items)*
+        ).to_string()
     }
-}
-
-fn doctest_inner(input: &str) -> proc_macro2::TokenStream {
-    let input: Input = syn::parse_str(input).unwrap();
-
-    let mut items = vec![];
-    for file in input.files {
-        assert_eq!(file.key, "file");
-
-        let escaped_name = file.value.value().replace('/', "_").replace('.', "_");
-        let ident = syn::Ident::new(
-            &format!("doubter_doctest_{}", escaped_name),
-            Span::call_site(),
-        );
-
-        let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").map(PathBuf::from).unwrap();
-        let doc_path = cargo_manifest_dir.join(file.value.value());
-
-        let file = fs::OpenOptions::new().read(true).open(doc_path).unwrap();
-        let file = BufReader::new(file);
-        let lines: Vec<String> = file.lines().collect::<io::Result<Vec<String>>>().unwrap();
-
-        items.push(quote!(
-            #(#[doc = #lines])*
-            #[allow(dead_code)]
-            pub const #ident : () = ();
-        ));
-    }
-
-    quote!(
-        #(#items)*
-    )
 }

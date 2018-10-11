@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate doubter;
 
-doctest! {
+doubter! {
     file = "doc/the_answer.md",
     file = "README.md",
 }

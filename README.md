@@ -16,13 +16,13 @@ doubter = { git = "https://github.com/ubnt-intrepid/doubter.git" }
 #[macro_use]
 extern crate doubter;
 
-doctect! {
+doubter! {
     file = "doc/print_foo.md",
     file = "README.md",
 }
 ```
 
-Currently, the macro `doctest!()` cannot be called twice in the same scope
+The macro `doctest!()` cannot be called twice in the same scope
 (See also [`dtolnay/proc-macro-hack#2`](https://github.com/dtolnay/proc-macro-hack/issues/2)).
 
 ## Status

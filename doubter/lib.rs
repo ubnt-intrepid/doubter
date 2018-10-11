@@ -9,5 +9,5 @@ pub use doubter_impl::*;
 
 proc_macro_item_decl! {
     /// Insert a code for testing doctest.
-    doctest! => doctest_impl
+    doubter! => doubter_impl
 }
