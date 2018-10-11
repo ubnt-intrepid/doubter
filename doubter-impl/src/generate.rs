@@ -38,7 +38,9 @@ impl<'a> Context<'a> {
             .markdown_files()
             .map(|file| {
                 let ident = file.ident();
-                let lines = file.read_lines(&root_dir).expect("failed to read a markdown file");
+                let lines = file
+                    .read_lines(&root_dir)
+                    .expect("failed to read a markdown file");
                 quote!(
                     #(#[doc = #lines])*
                     #[allow(dead_code)]
