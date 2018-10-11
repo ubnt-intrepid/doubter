@@ -6,8 +6,11 @@
 
 A helper crate for testing Rust code blocks in Markdown.
 
+This crate works similarly to `#![doc(include = "...")]`, but it does not require
+the nightly Rust toolchain.
+
 # Status
-Experimental
+Experimental (see also [the roadmap issue](https://github.com/ubnt-intrepid/doubter/issues/2))
 
 # Usage
 
@@ -21,16 +24,7 @@ doubter! {
 }
 ```
 
-The macro `doubter!()` cannot be called twice in the same scope.
-
-(See also [`dtolnay/proc-macro-hack#2`](https://github.com/dtolnay/proc-macro-hack/issues/2)).
-
-# Tasks
-- [ ] validate the input Markdown files
-  - add support for custom info
-- [ ] add `pattern = "..."` or support glob pattern in `file = "..."`
-- [ ] add `root_dir = "..."`
-- [ ] add `include = [...]` and `exclude = [...]`
+Note that the macro `doubter!()` cannot be called twice in the same scope.
 
 # License
 [MIT license](LICENSE)
