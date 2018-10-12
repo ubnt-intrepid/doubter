@@ -1,6 +1,6 @@
 [package]
 name = "doubter"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"
@@ -16,7 +16,7 @@ members = [
 
 [dependencies]
 proc-macro-hack = "0.4"
-doubter-impl = { version = "0.0.3", path = "doubter-impl" }
+doubter-impl = { version = "0.0.4", path = "doubter-impl" }
 
 [dev-dependencies.cargo-husky]
 version = "1"

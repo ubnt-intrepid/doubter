@@ -19,7 +19,7 @@ If some external crates are used in some code blocks, specify it as `[dev-depend
 
 ```toml
 [dependencies]
-doubter = "0.0.3"
+doubter = "0.0.4"
 
 [dev-dependencies]
 # put here additional dependencies used in code blocks.
