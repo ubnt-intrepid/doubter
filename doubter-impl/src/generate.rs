@@ -73,7 +73,7 @@ struct MarkdownFile<'a, 'c> {
 
 impl<'a, 'c> MarkdownFile<'a, 'c> {
     fn render(&self) -> io::Result<TokenStream> {
-        let constant_name = Ident::new(&self.escaped_file_name(), Span::call_site());
+        let constant_name = self.constant_name();
         let path = self.resolve_path()?;
         let content = fs::read_to_string(path)?;
         Ok(quote!(
@@ -83,7 +83,7 @@ impl<'a, 'c> MarkdownFile<'a, 'c> {
     }
 
     fn render_with_external_doc(&self) -> io::Result<TokenStream> {
-        let constant_name = Ident::new(&self.escaped_file_name(), Span::call_site());
+        let constant_name = self.constant_name();
         let path = self.resolve_path()?.display().to_string();
         Ok(quote!(
             #[doc(include = #path)]
@@ -91,11 +91,43 @@ impl<'a, 'c> MarkdownFile<'a, 'c> {
         ))
     }
 
-    fn escaped_file_name(&self) -> String {
-        self.input.value.value().replace('/', "_").replace('.', "_")
+    fn constant_name(&self) -> Ident {
+        let sanitized = sanitize_file_path(&self.input.value.value());
+        Ident::new(&sanitized, Span::call_site())
     }
 
     fn resolve_path(&self) -> io::Result<PathBuf> {
         self.root_dir.join(self.input.value.value()).canonicalize()
+    }
+}
+
+fn sanitize_file_path(s: &str) -> String {
+    s.to_ascii_lowercase()
+        .replace(|c: char| !c.is_ascii() || !c.is_alphanumeric(), "_")
+        .split('_')
+        .fold(String::new(), |mut acc, s| {
+            if !s.is_empty() {
+                if !acc.is_empty() {
+                    acc += "_";
+                }
+                acc += s;
+            }
+            acc
+        })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sanitize_file_path;
+
+    #[test]
+    fn test_sanitize_file_path() {
+        assert_eq!(sanitize_file_path("foo.md"), "foo_md");
+        assert_eq!(sanitize_file_path("_foo.md"), "foo_md");
+        assert_eq!(sanitize_file_path("../../foo.md"), "foo_md");
+        assert_eq!(sanitize_file_path("/path/to/file.md"), "path_to_file_md");
+        assert_eq!(sanitize_file_path("with whitespace"), "with_whitespace");
+        assert_eq!(sanitize_file_path("with-hyphen"), "with_hyphen");
+        assert_eq!(sanitize_file_path("with%non&ascii"), "with_non_ascii");
     }
 }
