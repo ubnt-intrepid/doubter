@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use proc_macro2::{Span, TokenStream};
 use syn::Ident;
 
-use parsing::{Input, KeyValue};
+use parsing::Input;
 
 #[derive(Debug)]
 pub struct Context<'a> {
@@ -24,13 +24,16 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn markdown_files<'c>(&'c self) -> impl Iterator<Item = MarkdownFile<'a, 'c>> + 'c {
+    fn markdown_files<'c>(&'c self) -> impl Iterator<Item = MarkdownFile<'c>> + 'c {
         let root_dir = self.root_dir.as_ref().expect("should be initialized");
-        self.input
-            .files
-            .iter()
-            .filter(|input| input.key == "file")
-            .map(move |input| MarkdownFile { input, root_dir })
+        self.input.fields.iter().filter_map(move |field| {
+            if field.key == "file" {
+                let md_path = field.value.value();
+                Some(MarkdownFile { md_path, root_dir })
+            } else {
+                None
+            }
+        })
     }
 
     fn init_root_dir(&mut self) -> io::Result<()> {
@@ -66,15 +69,15 @@ impl<'a> Context<'a> {
 }
 
 #[derive(Debug)]
-struct MarkdownFile<'a, 'c> {
-    input: &'a KeyValue,
-    root_dir: &'c Path,
+struct MarkdownFile<'a> {
+    md_path: String,
+    root_dir: &'a Path,
 }
 
-impl<'a, 'c> MarkdownFile<'a, 'c> {
+impl<'a> MarkdownFile<'a> {
     fn render(&self) -> io::Result<TokenStream> {
         let constant_name = self.constant_name();
-        let path = self.resolve_path()?;
+        let path = self.resolve_absolute_path()?;
         let content = fs::read_to_string(path)?;
         Ok(quote!(
             #[doc = #content]
@@ -84,7 +87,7 @@ impl<'a, 'c> MarkdownFile<'a, 'c> {
 
     fn render_with_external_doc(&self) -> io::Result<TokenStream> {
         let constant_name = self.constant_name();
-        let path = self.resolve_path()?.display().to_string();
+        let path = self.resolve_absolute_path()?.display().to_string();
         Ok(quote!(
             #[doc(include = #path)]
             pub const #constant_name : () = ();
@@ -92,12 +95,12 @@ impl<'a, 'c> MarkdownFile<'a, 'c> {
     }
 
     fn constant_name(&self) -> Ident {
-        let sanitized = sanitize_file_path(&self.input.value.value());
+        let sanitized = sanitize_file_path(&self.md_path);
         Ident::new(&sanitized, Span::call_site())
     }
 
-    fn resolve_path(&self) -> io::Result<PathBuf> {
-        self.root_dir.join(self.input.value.value()).canonicalize()
+    fn resolve_absolute_path(&self) -> io::Result<PathBuf> {
+        self.root_dir.join(&self.md_path).canonicalize()
     }
 }
 
