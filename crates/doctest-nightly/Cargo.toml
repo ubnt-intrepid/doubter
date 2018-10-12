@@ -1,8 +1,12 @@
 [package]
-name = "test-with-external-doc"
+name = "doctest-nightly"
 version = "0.0.0"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 publish = false
+
+[lib]
+name = "doctest_nightly"
+path = "lib.rs"
 
 [dependencies]
 doubter = { path = "../..", features = ["external-doc"] }

@@ -10,8 +10,8 @@ readme = "README.md"
 [workspace]
 members = [
   "doubter-impl",
-  "testcrates/test-doubter",
-  "testcrates/test-with-external-doc",
+  "crates/doctest",
+  "crates/doctest-nightly",
 ]
 
 [dependencies]
