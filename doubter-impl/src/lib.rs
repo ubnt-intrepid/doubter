@@ -1,3 +1,4 @@
+extern crate glob;
 #[macro_use]
 extern crate proc_macro_hack;
 extern crate proc_macro;

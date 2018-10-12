@@ -35,8 +35,8 @@ All paths specified here must be the relative path from Cargo's manifest directo
 extern crate doubter;
 
 doubter! {
-    file = "doc/print_foo.md",
-    file = "README.md",
+    include = "README.md",
+    include = "docs/**/*.md",
 }
 ```
 
