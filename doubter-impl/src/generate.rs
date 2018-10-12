@@ -37,11 +37,6 @@ impl<'a> Context<'a> {
 
         for field in &self.input.fields {
             match field {
-                Field::File(ref f) => {
-                    let md_path = f.value.value().into();
-                    let abspath = root_dir.join(&md_path).canonicalize()?;
-                    files.push(MarkdownFile { md_path, abspath });
-                }
                 Field::Include(ref f) => {
                     let pattern = f.value.value();
                     let entries = glob(&pattern).map_err(io_error)?;

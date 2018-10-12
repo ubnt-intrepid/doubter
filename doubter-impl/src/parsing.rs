@@ -8,13 +8,6 @@ fn parse_error(message: impl ::std::fmt::Display) -> ParseError {
 }
 
 #[derive(Debug)]
-pub struct FileField {
-    pub ident: Ident,
-    pub eq: Token![=],
-    pub value: LitStr,
-}
-
-#[derive(Debug)]
 pub struct IncludeField {
     pub ident: Ident,
     pub eq: Token![=],
@@ -23,7 +16,6 @@ pub struct IncludeField {
 
 #[derive(Debug)]
 pub enum Field {
-    File(FileField),
     Include(IncludeField),
 }
 
@@ -33,9 +25,7 @@ impl Parse for Field {
         let eq = input.parse()?;
         let value = input.parse()?;
 
-        if ident == "file" {
-            Ok(Field::File(FileField { ident, eq, value }))
-        } else if ident == "include" {
+        if ident == "include" {
             Ok(Field::Include(IncludeField { ident, eq, value }))
         } else {
             Err(parse_error(format!("invalid key: {}", ident)))
