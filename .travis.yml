@@ -8,11 +8,15 @@ matrix:
   allow_failures:
     - rust: nightly
   fast_finish: true
-
-  - rust: stable
-    before_script: rustup component add rustfmt-preview
-    script: cargo update && cargo fmt -- --check && rake
-  - rust: beta
-    script: cargo update && rake
-  - rust: nightly
-    script: cargo update && rake test nightly_test
+  include:
+    - rust: stable
+      before_script:
+        - rustup component add rustfmt-preview
+      script:
+        - cargo update && cargo fmt -- --check && rake
+    - rust: beta
+      script:
+        - cargo update && rake
+    - rust: nightly
+      script:
+        - cargo update && rake test nightly_test
