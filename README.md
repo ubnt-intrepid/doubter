@@ -9,10 +9,26 @@ A helper crate for testing Rust code blocks in Markdown.
 This crate works similarly to `#![doc(include = "...")]`, but it does not require
 the nightly Rust toolchain.
 
-# Status
-Experimental (see also [the roadmap issue](https://github.com/ubnt-intrepid/doubter/issues/2))
+## Usage
 
-# Usage
+First create a new crate for testing Markdown files.
+This crate must be separated from all published crates.
+
+Next, add the dependencies for `doubter` to `Cargo.toml`.
+If some external crates are used in some code blocks, specify it as `[dev-dependencies]`:
+
+```toml
+[dependencies]
+doubter = "0.0.3"
+
+[dev-dependencies]
+# put here additional dependencies used in code blocks.
+rand = "*"
+...
+```
+
+Finally modify `src/lib.rs` to specify the path to target Markdown files.
+All paths specified here must be the relative path from Cargo's manifest directory.
 
 ```rust
 #[macro_use]
@@ -24,7 +40,13 @@ doubter! {
 }
 ```
 
-Note that the macro `doubter!()` cannot be called twice in the same scope.
+## Status
+Experimental (see also [the roadmap issue](https://github.com/ubnt-intrepid/doubter/issues/2))
 
-# License
+## Alternatives
+
+* [`skeptic`](https://github.com/budziq/rust-skeptic)
+* [`docmatic`](https://github.com/assert-rs/docmatic)
+
+## License
 [MIT license](LICENSE)
