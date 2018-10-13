@@ -1,7 +1,7 @@
 use glob;
 use std::collections::HashMap;
 use std::error::Error as StdError;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -94,10 +94,7 @@ fn render_dir(dir: &HashMap<OsString, Node>, tokens: &mut TokenStream) -> io::Re
     for (segment, node) in dir {
         let mut inner = TokenStream::new();
         node.render(&mut inner)?;
-        let module_name = Ident::new(
-            &sanitize_file_path(&*segment.to_string_lossy()),
-            Span::call_site(),
-        );
+        let module_name = Ident::new(&sanitize(segment), Span::call_site());
         tokens.append_all(quote! {
             pub mod #module_name {
                 #inner
@@ -135,33 +132,23 @@ impl MarkdownFile {
     }
 }
 
-fn sanitize_file_path(s: &str) -> String {
-    s.to_ascii_lowercase()
+fn sanitize(s: impl AsRef<OsStr>) -> String {
+    s.as_ref()
+        .to_string_lossy()
+        .to_ascii_lowercase()
         .replace(|c: char| !c.is_ascii() || !c.is_alphanumeric(), "_")
-        .split('_')
-        .fold(String::new(), |mut acc, s| {
-            if !s.is_empty() {
-                if !acc.is_empty() {
-                    acc += "_";
-                }
-                acc += s;
-            }
-            acc
-        })
 }
 
 #[cfg(test)]
 mod tests {
-    use super::sanitize_file_path;
+    use super::sanitize;
 
     #[test]
-    fn test_sanitize_file_path() {
-        assert_eq!(sanitize_file_path("foo.md"), "foo_md");
-        assert_eq!(sanitize_file_path("_foo.md"), "foo_md");
-        assert_eq!(sanitize_file_path("../../foo.md"), "foo_md");
-        assert_eq!(sanitize_file_path("/path/to/file.md"), "path_to_file_md");
-        assert_eq!(sanitize_file_path("with whitespace"), "with_whitespace");
-        assert_eq!(sanitize_file_path("with-hyphen"), "with_hyphen");
-        assert_eq!(sanitize_file_path("with%non&ascii"), "with_non_ascii");
+    fn test_sanitize() {
+        assert_eq!(sanitize("foo.md"), "foo_md");
+        assert_eq!(sanitize("_foo.md"), "_foo_md");
+        assert_eq!(sanitize("with whitespace.md"), "with_whitespace_md");
+        assert_eq!(sanitize("with-hyphen.md"), "with_hyphen_md");
+        assert_eq!(sanitize("with%non&ascii.md"), "with_non_ascii_md");
     }
 }
