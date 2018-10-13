@@ -10,19 +10,6 @@ fn io_error(cause: impl Into<Box<StdError + Send + Sync + 'static>>) -> io::Erro
     io::Error::new(io::ErrorKind::Other, cause)
 }
 
-pub trait Visitor {
-    type Error;
-
-    fn visit_dir(&mut self, dir: &Dir) -> Result<(), Self::Error>;
-    fn visit_file(&mut self, file: &MarkdownFile) -> Result<(), Self::Error>;
-    fn visit_node(&mut self, node: &Node) -> Result<(), Self::Error> {
-        match node {
-            Node::Dir(ref dir) => self.visit_dir(dir),
-            Node::File(ref file) => self.visit_file(file),
-        }
-    }
-}
-
 #[derive(Debug, Default)]
 pub struct Tree {
     pub root: Dir,

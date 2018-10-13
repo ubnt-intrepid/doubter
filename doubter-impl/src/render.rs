@@ -10,7 +10,7 @@ use quote::TokenStreamExt;
 use syn::Ident;
 
 use config::{Config, Mode};
-use tree::{Dir, MarkdownFile, Tree, Visitor};
+use tree::{Dir, MarkdownFile, Node, Tree};
 
 fn io_error(cause: impl Into<Box<StdError + Send + Sync + 'static>>) -> io::Error {
     io::Error::new(io::ErrorKind::Other, cause)
@@ -46,13 +46,35 @@ impl RenderContext {
     }
 
     pub fn render(&self, tokens: &mut TokenStream) -> io::Result<()> {
-        let mut inner = TokenStream::new();
         (Renderer {
-            tokens: &mut inner,
             context: self,
-        }).visit_dir(&self.tree.root)?;
+            tokens,
+        }).render_tree(&self.tree)
+    }
+}
 
-        tokens.append_all(quote!(
+#[derive(Debug)]
+struct Renderer<'a> {
+    context: &'a RenderContext,
+    tokens: &'a mut TokenStream,
+}
+
+impl<'a> Renderer<'a> {
+    fn with_tokens<F>(&self, f: F) -> io::Result<TokenStream>
+    where
+        F: FnOnce(&mut Renderer) -> io::Result<()>,
+    {
+        let mut tokens = TokenStream::new();
+        f(&mut Renderer {
+            tokens: &mut tokens,
+            context: &*self.context,
+        })?;
+        Ok(tokens)
+    }
+
+    fn render_tree(&mut self, tree: &Tree) -> io::Result<()> {
+        let inner = self.with_tokens(|r| r.render_dir(&tree.root))?;
+        self.tokens.append_all(quote!(
             pub mod doctests {
                 #inner
             }
@@ -60,30 +82,22 @@ impl RenderContext {
 
         Ok(())
     }
-}
 
-#[derive(Debug)]
-struct Renderer<'a> {
-    tokens: &'a mut TokenStream,
-    context: &'a RenderContext,
-}
+    fn render_node(&mut self, node: &Node) -> io::Result<()> {
+        match node {
+            Node::Dir(ref dir) => self.render_dir(dir),
+            Node::File(ref file) => self.render_file(file),
+        }
+    }
 
-impl<'a> Visitor for Renderer<'a> {
-    type Error = io::Error;
-
-    fn visit_dir(&mut self, dir: &Dir) -> io::Result<()> {
+    fn render_dir(&mut self, dir: &Dir) -> io::Result<()> {
         for (segment, node) in dir.iter() {
             let module_name = match segment {
                 s if s == ".." => Ident::new("__PARENT__", Span::call_site()),
                 segment => Ident::new(&sanitize::sanitize(segment), Span::call_site()),
             };
 
-            let mut inner = TokenStream::new();
-            (Renderer {
-                tokens: &mut inner,
-                context: self.context,
-            }).visit_node(node)?;
-
+            let inner = self.with_tokens(|r| r.render_node(node))?;
             self.tokens.append_all(quote! {
                 pub mod #module_name {
                     #inner
@@ -93,7 +107,7 @@ impl<'a> Visitor for Renderer<'a> {
         Ok(())
     }
 
-    fn visit_file(&mut self, file: &MarkdownFile) -> io::Result<()> {
+    fn render_file(&mut self, file: &MarkdownFile) -> io::Result<()> {
         match self.context.mode {
             Mode::ExternalDoc => {
                 let path = file.path.to_string_lossy();
