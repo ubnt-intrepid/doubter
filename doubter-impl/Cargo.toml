@@ -16,6 +16,3 @@ proc-macro-hack = "0.4"
 proc-macro2 = "0.4.20"
 quote = "0.6"
 syn = { version = "0.15", features = ["full", "extra-traits"] }
-
-[features]
-external-doc = []

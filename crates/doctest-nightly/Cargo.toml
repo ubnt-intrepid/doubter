@@ -9,4 +9,4 @@ name = "doctest_nightly"
 path = "lib.rs"
 
 [dependencies]
-doubter = { path = "../..", features = ["external-doc"] }
+doubter = { path = "../.." }

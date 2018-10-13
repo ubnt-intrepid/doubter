@@ -9,7 +9,7 @@ use proc_macro2::Span;
 use quote::TokenStreamExt;
 use syn::Ident;
 
-use config::Config;
+use config::{Config, Mode};
 use tree::{Dir, MarkdownFile, Tree, Visitor};
 
 #[derive(Debug)]
@@ -41,7 +41,10 @@ impl RenderContext {
 
     pub fn render(&self, tokens: &mut TokenStream) -> io::Result<()> {
         let mut inner = TokenStream::new();
-        Renderer { tokens: &mut inner }.visit_dir(&self.tree.root)?;
+        (Renderer {
+            tokens: &mut inner,
+            config: &self.config,
+        }).visit_dir(&self.tree.root)?;
 
         tokens.append_all(quote!(
             pub mod doctests {
@@ -56,6 +59,7 @@ impl RenderContext {
 #[derive(Debug)]
 struct Renderer<'a> {
     tokens: &'a mut TokenStream,
+    config: &'a Config,
 }
 
 impl<'a> Visitor for Renderer<'a> {
@@ -69,7 +73,10 @@ impl<'a> Visitor for Renderer<'a> {
             };
 
             let mut inner = TokenStream::new();
-            Renderer { tokens: &mut inner }.visit_node(node)?;
+            (Renderer {
+                tokens: &mut inner,
+                config: self.config,
+            }).visit_node(node)?;
 
             self.tokens.append_all(quote! {
                 pub mod #module_name {
@@ -81,15 +88,17 @@ impl<'a> Visitor for Renderer<'a> {
     }
 
     fn visit_file(&mut self, file: &MarkdownFile) -> io::Result<()> {
-        if cfg!(feature = "external-doc") {
-            let path = file.path.to_string_lossy();
-            self.tokens.append_all(quote!(#![doc(include = #path)]));
-            Ok(())
-        } else {
-            let content = fs::read_to_string(&file.path)?;
-            self.tokens.append_all(quote!(#![doc = #content]));
-            Ok(())
+        match self.config.mode {
+            Some(Mode::ExternalDoc) => {
+                let path = file.path.to_string_lossy();
+                self.tokens.append_all(quote!(#![doc(include = #path)]));
+            }
+            Some(Mode::Default) | None => {
+                let content = fs::read_to_string(&file.path)?;
+                self.tokens.append_all(quote!(#![doc = #content]));
+            }
         }
+        Ok(())
     }
 }
 

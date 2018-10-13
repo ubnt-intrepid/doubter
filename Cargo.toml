@@ -23,6 +23,3 @@ doubter-impl = { version = "0.0.5", path = "doubter-impl" }
 version = "1"
 default-features = false
 features = ["user-hooks"]
-
-[features]
-external-doc = ["doubter-impl/external-doc"]

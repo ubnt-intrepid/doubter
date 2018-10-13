@@ -3,4 +3,7 @@
 #[macro_use]
 extern crate doubter;
 
-doubter!(include = "README.md");
+doubter! {
+    mode = "external-doc",
+    include = "README.md",
+}

@@ -1,11 +1,18 @@
 #[derive(Debug)]
 pub struct Config {
     pub includes: Vec<String>,
+    pub mode: Option<Mode>,
     _priv: (),
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum Mode {
+    Default,
+    ExternalDoc,
+}
+
 mod parsing {
-    use super::Config;
+    use super::{Config, Mode};
 
     use proc_macro2::Span;
     use std::str::FromStr;
@@ -28,17 +35,23 @@ mod parsing {
             let fields = Punctuated::<Field, Token![,]>::parse_terminated(input)?;
 
             let mut includes = vec![];
+            let mut mode = None;
 
             for field in fields {
-                if field.ident == "include" {
-                    includes.push(field.value.value());
-                } else {
-                    return Err(parse_error(format!("invalid key: {}", field.ident)));
+                match &*field.ident.to_string() {
+                    "include" => includes.push(field.value.value()),
+                    "mode" => match field.value.value().trim() {
+                        "default" => mode = Some(Mode::Default),
+                        "external-doc" => mode = Some(Mode::ExternalDoc),
+                        s => return Err(parse_error(format!("invalid mode: {:?}", s))),
+                    },
+                    s => return Err(parse_error(format!("invalid key: {:?}", s))),
                 }
             }
 
             Ok(Config {
                 includes,
+                mode,
                 _priv: (),
             })
         }
