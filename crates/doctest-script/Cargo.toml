@@ -1,0 +1,17 @@
+[package]
+name = "doctest-script"
+version = "0.0.0"
+authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
+publish = false
+
+build = "build.rs"
+
+[lib]
+name = "doctest"
+path = "lib.rs"
+
+[build-dependencies]
+doubter = { path = "../.." }
+
+[dependencies]
+doubter = { path = "../.." }
