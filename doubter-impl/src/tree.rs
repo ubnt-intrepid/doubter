@@ -68,7 +68,14 @@ impl Tree {
     }
 
     pub(crate) fn render(&self, tokens: &mut TokenStream) -> io::Result<()> {
-        render_dir(&self.root, tokens)
+        let mut inner = TokenStream::new();
+        render_dir(&self.root, &mut inner)?;
+        tokens.append_all(quote!(
+            pub mod doctests {
+                #inner
+            }
+        ));
+        Ok(())
     }
 }
 
