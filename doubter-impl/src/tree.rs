@@ -4,6 +4,7 @@ use std::error::Error as StdError;
 use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io;
+use std::iter;
 use std::path::{Path, PathBuf};
 
 use proc_macro2::{Span, TokenStream};
@@ -32,11 +33,7 @@ impl Tree {
 
         for entry in entries {
             let abspath = entry.map_err(io_error)?;
-            let md_path = abspath
-                .strip_prefix(&root_dir)
-                .map_err(io_error)?
-                .to_owned();
-
+            let md_path = normalize_path(&abspath, &root_dir)?;
             self.insert(MarkdownFile { md_path, abspath });
         }
 
@@ -92,9 +89,14 @@ impl Node {
 
 fn render_dir(dir: &HashMap<OsString, Node>, tokens: &mut TokenStream) -> io::Result<()> {
     for (segment, node) in dir {
+        let module_name = match segment {
+            s if s == ".." => Ident::new("__PARENT__", Span::call_site()),
+            segment => Ident::new(&sanitize(segment), Span::call_site()),
+        };
+
         let mut inner = TokenStream::new();
         node.render(&mut inner)?;
-        let module_name = Ident::new(&sanitize(segment), Span::call_site());
+
         tokens.append_all(quote! {
             pub mod #module_name {
                 #inner
@@ -139,9 +141,36 @@ fn sanitize(s: impl AsRef<OsStr>) -> String {
         .replace(|c: char| !c.is_ascii() || !c.is_alphanumeric(), "_")
 }
 
+fn normalize_path(path: impl AsRef<Path>, root_dir: impl AsRef<Path>) -> io::Result<PathBuf> {
+    let path = path.as_ref();
+    let mut base = root_dir.as_ref();
+    let mut num_parents = 0;
+    loop {
+        match path.strip_prefix(base) {
+            Ok(stripped) => {
+                if num_parents > 0 {
+                    return Ok(iter::repeat(Path::new(".."))
+                        .take(num_parents)
+                        .chain(Some(stripped))
+                        .collect::<PathBuf>());
+                } else {
+                    return Ok(stripped.to_owned());
+                }
+            }
+            Err(..) => match base.parent() {
+                Some(p) => {
+                    num_parents += 1;
+                    base = p
+                }
+                None => return Err(io_error("")),
+            },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::sanitize;
+    use super::{normalize_path, sanitize};
 
     #[test]
     fn test_sanitize() {
@@ -150,5 +179,27 @@ mod tests {
         assert_eq!(sanitize("with whitespace.md"), "with_whitespace_md");
         assert_eq!(sanitize("with-hyphen.md"), "with_hyphen_md");
         assert_eq!(sanitize("with%non&ascii.md"), "with_non_ascii_md");
+    }
+
+    #[test]
+    fn test_normalize_path() {
+        assert_eq!(
+            normalize_path("/path/to/a/b.md", "/path/to")
+                .unwrap()
+                .to_string_lossy(),
+            "a/b.md"
+        );
+        assert_eq!(
+            normalize_path("/path/to/a/b.md", "/path/to/c")
+                .unwrap()
+                .to_string_lossy(),
+            "../a/b.md"
+        );
+        assert_eq!(
+            normalize_path("/path/to/a/b.md", "/foo/bar")
+                .unwrap()
+                .to_string_lossy(),
+            "../../path/to/a/b.md"
+        );
     }
 }
