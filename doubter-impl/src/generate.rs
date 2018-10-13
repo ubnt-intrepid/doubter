@@ -39,10 +39,14 @@ impl<'a> Context<'a> {
             match field {
                 Field::Include(ref f) => {
                     let pattern = f.value.value();
-                    let entries = glob(&pattern).map_err(io_error)?;
+                    let entries =
+                        glob(&root_dir.join(pattern).to_string_lossy()).map_err(io_error)?;
                     for entry in entries {
-                        let md_path = entry.map_err(io_error)?;
-                        let abspath = root_dir.join(&md_path).canonicalize()?;
+                        let abspath = entry.map_err(io_error)?;
+                        let md_path = abspath
+                            .strip_prefix(&root_dir)
+                            .map_err(io_error)?
+                            .to_owned();
                         files.push(MarkdownFile { md_path, abspath });
                     }
                 }
