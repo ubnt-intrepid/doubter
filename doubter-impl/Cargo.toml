@@ -1,6 +1,6 @@
 [package]
 name = "doubter-impl"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"

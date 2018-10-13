@@ -11,7 +11,7 @@ the nightly Rust toolchain.
 
 ## Usage
 
-First create a new crate for testing Markdown files.
+At first, create a new crate for testing Markdown files.
 This crate must be separated from all published crates.
 
 Next, add the dependencies for `doubter` to `Cargo.toml`.
@@ -19,12 +19,12 @@ If some external crates are used in some code blocks, specify it as `[dev-depend
 
 ```toml
 [dependencies]
-doubter = "0.0.4"
+doubter = "0.0.5"
 
 [dev-dependencies]
 # put here additional dependencies used in code blocks.
 rand = "*"
-...
+# ...
 ```
 
 Finally modify `src/lib.rs` to specify the path to target Markdown files.

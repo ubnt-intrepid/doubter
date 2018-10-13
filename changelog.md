@@ -1,3 +1,12 @@
+<a name="0.0.5"></a>
+### 0.0.5 (2018-10-13)
+
+* add glob pattern support ([#4](https://github.com/ubnt-intrepid/doubter/pull/4))
+* save the original directory tree as module structure ([#6](https://github.com/ubnt-intrepid/doubter/pull/6))
+
+Compatibility Notes:
+* rename the field key `file` to `include`
+
 <a name="0.0.4"></a>
 ### 0.0.4 (2018-10-12)
 
