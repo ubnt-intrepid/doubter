@@ -8,6 +8,7 @@ task :test do
     sh "cargo test --verbose"
     sh "cargo test --verbose -p doubter-impl"
     sh "cargo test --verbose -p doctest"
+    sh "cargo test --verbose -p doctest-script"
 end
 
 task :install_hooks do
