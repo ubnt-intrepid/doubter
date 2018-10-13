@@ -10,6 +10,7 @@ extern crate syn;
 
 mod generate;
 mod parsing;
+mod tree;
 
 use generate::Context;
 use parsing::Input;
