@@ -10,7 +10,6 @@ description = "Procedural macros for doubter"
 proc-macro = true
 
 [dependencies]
-failure = "0.1.2"
 glob = "0.2.11"
 proc-macro-hack = "0.4"
 proc-macro2 = "0.4.20"

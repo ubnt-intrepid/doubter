@@ -1,6 +1,6 @@
-use failure::Fallible;
 use proc_macro2::TokenStream;
 use std::env;
+use std::error::Error as StdError;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
@@ -12,30 +12,36 @@ use syn::Ident;
 use config::{Config, Mode};
 use tree::{Dir, MarkdownFile, Tree, Visitor};
 
+fn io_error(cause: impl Into<Box<StdError + Send + Sync + 'static>>) -> io::Error {
+    io::Error::new(io::ErrorKind::Other, cause)
+}
+
 #[derive(Debug)]
 pub struct RenderContext {
     config: Config,
     root_dir: PathBuf,
     tree: Tree,
+    mode: Mode,
 }
 
 impl RenderContext {
-    pub(crate) fn init(config: Config) -> Fallible<RenderContext> {
+    pub(crate) fn init(config: Config) -> io::Result<RenderContext> {
         let root_dir = env::var_os("CARGO_MANIFEST_DIR")
             .map(PathBuf::from)
-            .ok_or_else(|| {
-                format_err!("the environment variable `CARGO_MANIFEST_DIR` is not set")
-            })?;
+            .ok_or_else(|| io_error("the environment variable `CARGO_MANIFEST_DIR` is not set"))?;
 
         let mut tree = Tree::default();
         for pattern in &config.includes {
             tree.register_md_files(pattern, &root_dir)?;
         }
 
+        let mode = config.mode.unwrap_or_else(|| Mode::Default);
+
         Ok(RenderContext {
             config,
             root_dir,
             tree,
+            mode,
         })
     }
 
@@ -43,7 +49,7 @@ impl RenderContext {
         let mut inner = TokenStream::new();
         (Renderer {
             tokens: &mut inner,
-            config: &self.config,
+            context: self,
         }).visit_dir(&self.tree.root)?;
 
         tokens.append_all(quote!(
@@ -59,7 +65,7 @@ impl RenderContext {
 #[derive(Debug)]
 struct Renderer<'a> {
     tokens: &'a mut TokenStream,
-    config: &'a Config,
+    context: &'a RenderContext,
 }
 
 impl<'a> Visitor for Renderer<'a> {
@@ -75,7 +81,7 @@ impl<'a> Visitor for Renderer<'a> {
             let mut inner = TokenStream::new();
             (Renderer {
                 tokens: &mut inner,
-                config: self.config,
+                context: self.context,
             }).visit_node(node)?;
 
             self.tokens.append_all(quote! {
@@ -88,12 +94,12 @@ impl<'a> Visitor for Renderer<'a> {
     }
 
     fn visit_file(&mut self, file: &MarkdownFile) -> io::Result<()> {
-        match self.config.mode {
-            Some(Mode::ExternalDoc) => {
+        match self.context.mode {
+            Mode::ExternalDoc => {
                 let path = file.path.to_string_lossy();
                 self.tokens.append_all(quote!(#![doc(include = #path)]));
             }
-            Some(Mode::Default) | None => {
+            Mode::Default => {
                 let content = fs::read_to_string(&file.path)?;
                 self.tokens.append_all(quote!(#![doc = #content]));
             }
