@@ -1,11 +1,14 @@
 use glob::glob;
+use std::collections::HashMap;
 use std::env;
 use std::error::Error as StdError;
+use std::ffi::OsString;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
 
 use proc_macro2::{Span, TokenStream};
+use quote::TokenStreamExt;
 use syn::Ident;
 
 use parsing::{Field, Input};
@@ -30,11 +33,10 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn markdown_files(&self) -> io::Result<Vec<MarkdownFile>> {
+    fn collect_markdown_files(&self) -> io::Result<Tree> {
         let root_dir = self.root_dir.as_ref().expect("should be initialized");
 
-        let mut files = vec![];
-
+        let mut tree = Tree::default();
         for field in &self.input.fields {
             match field {
                 Field::Include(ref f) => {
@@ -47,13 +49,13 @@ impl<'a> Context<'a> {
                             .strip_prefix(&root_dir)
                             .map_err(io_error)?
                             .to_owned();
-                        files.push(MarkdownFile { md_path, abspath });
+                        tree.insert(MarkdownFile { md_path, abspath });
                     }
                 }
             }
         }
 
-        Ok(files)
+        Ok(tree)
     }
 
     fn init_root_dir(&mut self) -> io::Result<()> {
@@ -71,21 +73,89 @@ impl<'a> Context<'a> {
 
     pub fn run(&mut self) -> io::Result<TokenStream> {
         self.init_root_dir()?;
+        let file_tree = self.collect_markdown_files()?;
 
-        let items = self
-            .markdown_files()?
-            .into_iter()
-            .map(|file| {
-                if cfg!(feature = "external-doc") {
-                    file.render_with_external_doc()
+        let mut tokens = TokenStream::new();
+        file_tree.render(&mut tokens)?;
+        Ok(tokens)
+    }
+}
+
+#[derive(Debug, Default)]
+struct Tree {
+    root: HashMap<OsString, Node>,
+}
+
+impl Tree {
+    fn insert(&mut self, md_file: MarkdownFile) {
+        let mut cursor = &mut self.root;
+
+        let file_name = {
+            let mut iter = md_file.md_path.iter().peekable();
+            loop {
+                if let Some(segment) = iter.next() {
+                    if iter.peek().is_none() {
+                        break Some(segment.to_owned());
+                    } else {
+                        cursor = match { cursor }
+                            .entry(segment.to_owned())
+                            .or_insert_with(|| Node::Dir(Default::default()))
+                        {
+                            Node::Dir(ref mut map) => map,
+                            Node::File(..) => unreachable!(),
+                        };
+                    }
                 } else {
-                    file.render()
+                    break None;
                 }
-            }).collect::<io::Result<Vec<_>>>()?;
+            }
+        };
 
-        Ok(quote!(
-            #(#items)*
-        ))
+        cursor.insert(file_name.unwrap(), Node::File(md_file));
+    }
+
+    fn render(&self, tokens: &mut TokenStream) -> io::Result<()> {
+        render_dir(&self.root, tokens)
+    }
+}
+
+#[derive(Debug)]
+enum Node {
+    Dir(HashMap<OsString, Node>),
+    File(MarkdownFile),
+}
+
+impl Node {
+    fn render(&self, tokens: &mut TokenStream) -> io::Result<()> {
+        match self {
+            Node::Dir(ref dir) => render_dir(dir, tokens),
+            Node::File(ref md_file) => render_file(md_file, tokens),
+        }
+    }
+}
+
+fn render_dir(dir: &HashMap<OsString, Node>, tokens: &mut TokenStream) -> io::Result<()> {
+    for (segment, node) in dir {
+        let mut inner = TokenStream::new();
+        node.render(&mut inner)?;
+        let module_name = Ident::new(
+            &sanitize_file_path(&*segment.to_string_lossy()),
+            Span::call_site(),
+        );
+        tokens.append_all(quote! {
+            pub mod #module_name {
+                #inner
+            }
+        });
+    }
+    Ok(())
+}
+
+fn render_file(md_file: &MarkdownFile, tokens: &mut TokenStream) -> io::Result<()> {
+    if cfg!(feature = "external-doc") {
+        md_file.render_with_external_doc(tokens)
+    } else {
+        md_file.render(tokens)
     }
 }
 
@@ -96,27 +166,16 @@ struct MarkdownFile {
 }
 
 impl MarkdownFile {
-    fn render(&self) -> io::Result<TokenStream> {
-        let constant_name = self.constant_name();
+    fn render(&self, tokens: &mut TokenStream) -> io::Result<()> {
         let content = fs::read_to_string(&self.abspath)?;
-        Ok(quote!(
-            #[doc = #content]
-            pub const #constant_name : () = ();
-        ))
+        tokens.append_all(quote!(#![doc = #content]));
+        Ok(())
     }
 
-    fn render_with_external_doc(&self) -> io::Result<TokenStream> {
-        let constant_name = self.constant_name();
+    fn render_with_external_doc(&self, tokens: &mut TokenStream) -> io::Result<()> {
         let path = self.abspath.to_string_lossy();
-        Ok(quote!(
-            #[doc(include = #path)]
-            pub const #constant_name : () = ();
-        ))
-    }
-
-    fn constant_name(&self) -> Ident {
-        let sanitized = sanitize_file_path(&self.md_path.to_string_lossy());
-        Ident::new(&sanitized, Span::call_site())
+        tokens.append_all(quote!(#![doc(include = #path)]));
+        Ok(())
     }
 }
 
