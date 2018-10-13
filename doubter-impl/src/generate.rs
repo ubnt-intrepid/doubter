@@ -1,18 +1,11 @@
-use glob::glob;
 use std::env;
-use std::error::Error as StdError;
-use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-use proc_macro2::{Span, TokenStream};
-use syn::Ident;
+use proc_macro2::TokenStream;
 
 use parsing::{Field, Input};
-
-fn io_error(cause: impl Into<Box<StdError + Send + Sync + 'static>>) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, cause)
-}
+use tree::Tree;
 
 #[derive(Debug)]
 pub struct Context<'a> {
@@ -22,7 +15,7 @@ pub struct Context<'a> {
 }
 
 impl<'a> Context<'a> {
-    pub fn new(input: &'a Input) -> Context<'a> {
+    pub(crate) fn new(input: &'a Input) -> Context<'a> {
         Context {
             input,
             root_dir: None,
@@ -30,30 +23,21 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn markdown_files(&self) -> io::Result<Vec<MarkdownFile>> {
+    fn collect_markdown_files(&self) -> io::Result<Tree> {
         let root_dir = self.root_dir.as_ref().expect("should be initialized");
 
-        let mut files = vec![];
+        let mut tree = Tree::default();
 
         for field in &self.input.fields {
             match field {
                 Field::Include(ref f) => {
                     let pattern = f.value.value();
-                    let entries =
-                        glob(&root_dir.join(pattern).to_string_lossy()).map_err(io_error)?;
-                    for entry in entries {
-                        let abspath = entry.map_err(io_error)?;
-                        let md_path = abspath
-                            .strip_prefix(&root_dir)
-                            .map_err(io_error)?
-                            .to_owned();
-                        files.push(MarkdownFile { md_path, abspath });
-                    }
+                    tree.register_md_files(pattern, root_dir)?;
                 }
             }
         }
 
-        Ok(files)
+        Ok(tree)
     }
 
     fn init_root_dir(&mut self) -> io::Result<()> {
@@ -72,81 +56,10 @@ impl<'a> Context<'a> {
     pub fn run(&mut self) -> io::Result<TokenStream> {
         self.init_root_dir()?;
 
-        let items = self
-            .markdown_files()?
-            .into_iter()
-            .map(|file| {
-                if cfg!(feature = "external-doc") {
-                    file.render_with_external_doc()
-                } else {
-                    file.render()
-                }
-            }).collect::<io::Result<Vec<_>>>()?;
+        let file_tree = self.collect_markdown_files()?;
 
-        Ok(quote!(
-            #(#items)*
-        ))
-    }
-}
-
-#[derive(Debug)]
-struct MarkdownFile {
-    md_path: PathBuf,
-    abspath: PathBuf,
-}
-
-impl MarkdownFile {
-    fn render(&self) -> io::Result<TokenStream> {
-        let constant_name = self.constant_name();
-        let content = fs::read_to_string(&self.abspath)?;
-        Ok(quote!(
-            #[doc = #content]
-            pub const #constant_name : () = ();
-        ))
-    }
-
-    fn render_with_external_doc(&self) -> io::Result<TokenStream> {
-        let constant_name = self.constant_name();
-        let path = self.abspath.to_string_lossy();
-        Ok(quote!(
-            #[doc(include = #path)]
-            pub const #constant_name : () = ();
-        ))
-    }
-
-    fn constant_name(&self) -> Ident {
-        let sanitized = sanitize_file_path(&self.md_path.to_string_lossy());
-        Ident::new(&sanitized, Span::call_site())
-    }
-}
-
-fn sanitize_file_path(s: &str) -> String {
-    s.to_ascii_lowercase()
-        .replace(|c: char| !c.is_ascii() || !c.is_alphanumeric(), "_")
-        .split('_')
-        .fold(String::new(), |mut acc, s| {
-            if !s.is_empty() {
-                if !acc.is_empty() {
-                    acc += "_";
-                }
-                acc += s;
-            }
-            acc
-        })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::sanitize_file_path;
-
-    #[test]
-    fn test_sanitize_file_path() {
-        assert_eq!(sanitize_file_path("foo.md"), "foo_md");
-        assert_eq!(sanitize_file_path("_foo.md"), "foo_md");
-        assert_eq!(sanitize_file_path("../../foo.md"), "foo_md");
-        assert_eq!(sanitize_file_path("/path/to/file.md"), "path_to_file_md");
-        assert_eq!(sanitize_file_path("with whitespace"), "with_whitespace");
-        assert_eq!(sanitize_file_path("with-hyphen"), "with_hyphen");
-        assert_eq!(sanitize_file_path("with%non&ascii"), "with_non_ascii");
+        let mut tokens = TokenStream::new();
+        file_tree.render(&mut tokens)?;
+        Ok(tokens)
     }
 }
