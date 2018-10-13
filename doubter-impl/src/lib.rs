@@ -15,22 +15,27 @@ mod render;
 mod tree;
 
 use config::Config;
-use render::Context;
+use render::RenderContext;
 
 proc_macro_item_impl! {
     pub fn doubter_impl(input: &str) -> String {
-        let config: Config = input.parse().unwrap_or_else(|e| {
-            panic!("failed to parse the input: {}", e);
-        });
-
-        let mut ctx = Context::init(&config).unwrap_or_else(|e| {
-            panic!("failed to initialize the render context: {}", e);
-        });
-
-        let output = ctx.run().unwrap_or_else(|e| {
-            panic!("error during generating doc comments: {}", e);
-        });
-
-        output.to_string()
+        doubter_impl_inner(input).to_string()
     }
+}
+
+fn doubter_impl_inner(input: &str) -> proc_macro2::TokenStream {
+    let config: Config = input.parse().unwrap_or_else(|e| {
+        panic!("failed to parse the input: {}", e);
+    });
+
+    let ctx = RenderContext::init(config).unwrap_or_else(|e| {
+        panic!("failed to initialize the render context: {}", e);
+    });
+
+    let mut tokens = Default::default();
+    ctx.render(&mut tokens).unwrap_or_else(|e| {
+        panic!("error during generating doc comments: {}", e);
+    });
+
+    tokens
 }
