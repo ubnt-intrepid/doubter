@@ -4,6 +4,9 @@ branches:
   only:
     - master
 
+cache:
+  - cargo: true
+
 matrix:
   allow_failures:
     - rust: nightly
