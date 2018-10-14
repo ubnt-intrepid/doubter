@@ -11,6 +11,7 @@ readme = "README.md"
 members = [
   "doubter-impl",
   "crates/doctest",
+  "crates/doctest-extract",
   "crates/doctest-script",
   "crates/doctest-nightly",
 ]

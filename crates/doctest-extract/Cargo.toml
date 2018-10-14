@@ -1,0 +1,12 @@
+[package]
+name = "doctest-extract"
+version = "0.0.0"
+authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
+publish = false
+
+[lib]
+name = "doctest"
+path = "lib.rs"
+
+[dependencies]
+doubter = { path = "../.." }

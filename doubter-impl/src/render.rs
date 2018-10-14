@@ -10,6 +10,7 @@ use quote::TokenStreamExt;
 use syn::Ident;
 
 use config::{Config, Mode};
+use extract::extract_code_blocks;
 use tree::{Dir, MarkdownFile, Node, Tree};
 
 fn io_error(cause: impl Into<Box<StdError + Send + Sync + 'static>>) -> io::Error {
@@ -116,6 +117,23 @@ impl<'a> Renderer<'a> {
             Mode::Default => {
                 let content = fs::read_to_string(&file.path)?;
                 self.tokens.append_all(quote!(#![doc = #content]));
+            }
+            Mode::Extract => {
+                let content = fs::read_to_string(&file.path)?;
+                let blocks = extract_code_blocks(&content);
+
+                for block in blocks {
+                    let header = format!("```{}", block.info);
+                    let content = &block.content;
+                    let const_name =
+                        Ident::new(&format!("block_line_{}", block.line), Span::call_site());
+                    self.tokens.append_all(quote!{
+                        #[doc = #header]
+                        #(#[doc = #content])*
+                        #[doc = "```"]
+                        pub const #const_name: () = ();
+                    });
+                }
             }
         }
         Ok(())
