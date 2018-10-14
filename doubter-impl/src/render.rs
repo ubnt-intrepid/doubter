@@ -22,7 +22,6 @@ pub struct RenderContext {
     config: Config,
     root_dir: PathBuf,
     tree: Tree,
-    mode: Mode,
 }
 
 impl RenderContext {
@@ -36,14 +35,19 @@ impl RenderContext {
             tree.register_md_files(pattern, &root_dir)?;
         }
 
-        let mode = config.mode.unwrap_or_else(|| Mode::Default);
-
         Ok(RenderContext {
             config,
             root_dir,
             tree,
-            mode,
         })
+    }
+
+    fn mode(&self) -> Mode {
+        if self.config.use_external_doc {
+            Mode::Raw
+        } else {
+            self.config.mode.unwrap_or_else(|| Mode::Raw)
+        }
     }
 
     pub fn render(&self, tokens: &mut TokenStream) -> io::Result<()> {
@@ -109,14 +113,15 @@ impl<'a> Renderer<'a> {
     }
 
     fn render_file(&mut self, file: &MarkdownFile) -> io::Result<()> {
-        match self.context.mode {
-            Mode::ExternalDoc => {
-                let path = file.path.to_string_lossy();
-                self.tokens.append_all(quote!(#![doc(include = #path)]));
-            }
-            Mode::Default => {
-                let content = fs::read_to_string(&file.path)?;
-                self.tokens.append_all(quote!(#![doc = #content]));
+        match self.context.mode() {
+            Mode::Raw => {
+                if self.context.config.use_external_doc {
+                    let path = file.path.to_string_lossy();
+                    self.tokens.append_all(quote!(#![doc(include = #path)]));
+                } else {
+                    let content = fs::read_to_string(&file.path)?;
+                    self.tokens.append_all(quote!(#![doc = #content]));
+                }
             }
             Mode::Extract => {
                 let content = fs::read_to_string(&file.path)?;

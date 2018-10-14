@@ -4,6 +4,6 @@
 extern crate doubter;
 
 doubter! {
-    mode = "external-doc",
     include = "README.md",
+    use_external_doc = true,
 }

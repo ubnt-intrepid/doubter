@@ -40,6 +40,21 @@ doubter! {
 }
 ```
 
+The macro `doubter!()` takes a comma-separated list of fields.
+The following field keys are currently supported:
+
+* `include` - string literal  
+  A glob pattern that points to the path to the Markdown file(s) to be tested.
+  Required to be a relative path from cargo's manifest directory.
+* `mode` - string literal, optional  
+  The mode to convert Markdown files to doctest.
+  Supported values are as follows:
+  - `"raw"` (default) : embeds the Markdown files in Rust source *as it is*.
+  - `"extract"` : extracts code blocks and emit as doctest *per blocks*.
+* `use_external_doc` - string/bool literal, optional
+  Specify whether to use `#[doc(include = "...")]` to embed Markdown files.
+  When this filed is enabled, the value of `mode` is forced to `"raw"`.
+
 ## Implementation Details
 
 This crate emulates the behavior of unstable feature `#[doc(include = "...")]`
@@ -58,12 +73,12 @@ is roughly expanded to the following code:
 ```rust
 pub mod doctests {
     pub mod readme_md {
-        #![doc = "... the content of README.md ..."]
+        // ...
+        // The content of README.md converted to doc comment
+        // ...
     }
 }
 ```
-
-In the current implementation, the imported Markdown files are embedded in Rust source *as it is*.
 
 ## Alternatives
 

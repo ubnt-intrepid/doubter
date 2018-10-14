@@ -2,13 +2,13 @@
 pub struct Config {
     pub includes: Vec<String>,
     pub mode: Option<Mode>,
+    pub use_external_doc: bool,
     _priv: (),
 }
 
 #[derive(Debug, Copy, Clone)]
 pub enum Mode {
-    Default,
-    ExternalDoc,
+    Raw,
     Extract,
 }
 
@@ -21,7 +21,7 @@ mod parsing {
     use syn::parse;
     use syn::parse::{Parse, ParseStream};
     use syn::punctuated::Punctuated;
-    use syn::{Ident, LitStr};
+    use syn::{Ident, Lit};
 
     impl FromStr for Config {
         type Err = parse::Error;
@@ -37,15 +37,41 @@ mod parsing {
 
             let mut includes = vec![];
             let mut mode = None;
+            let mut use_external_doc = false;
 
             for field in fields {
                 match &*field.ident.to_string() {
-                    "include" => includes.push(field.value.value()),
-                    "mode" => match field.value.value().trim() {
-                        "default" => mode = Some(Mode::Default),
-                        "external-doc" => mode = Some(Mode::ExternalDoc),
-                        "extract" => mode = Some(Mode::Extract),
-                        s => return Err(parse_error(format!("invalid mode: {:?}", s))),
+                    "include" => match field.value {
+                        Lit::Str(s) => includes.push(s.value()),
+                        _ => {
+                            return Err(parse_error("unsupported literal type in 'include' field."))
+                        }
+                    },
+                    "mode" => match field.value {
+                        Lit::Str(s) => match s.value().trim() {
+                            "raw" => mode = Some(Mode::Raw),
+                            "extract" => mode = Some(Mode::Extract),
+                            s => return Err(parse_error(format!("invalid mode: {:?}", s))),
+                        },
+                        _ => return Err(parse_error("unsupported literal type in 'mode' field.")),
+                    },
+                    "use_external_doc" => match field.value {
+                        Lit::Str(s) => match s.value().trim() {
+                            "on" | "true" | "yes" => use_external_doc = true,
+                            "off" | "false" | "no" => use_external_doc = false,
+                            s => {
+                                return Err(parse_error(format!(
+                                    "invalid value in `use_external_doc`: {}",
+                                    s
+                                )))
+                            }
+                        },
+                        Lit::Bool(b) => use_external_doc = b.value,
+                        _ => {
+                            return Err(parse_error(
+                                "unsupported literal type in 'use_external_doc' field.",
+                            ))
+                        }
                     },
                     s => return Err(parse_error(format!("invalid key: {:?}", s))),
                 }
@@ -54,20 +80,9 @@ mod parsing {
             Ok(Config {
                 includes,
                 mode,
+                use_external_doc,
                 _priv: (),
             })
-        }
-    }
-
-    #[derive(Debug)]
-    struct Input {
-        fields: Punctuated<Field, Token![,]>,
-    }
-
-    impl Parse for Input {
-        fn parse(input: ParseStream) -> parse::Result<Self> {
-            let fields = Punctuated::<Field, Token![,]>::parse_terminated(input)?;
-            Ok(Input { fields })
         }
     }
 
@@ -79,7 +94,7 @@ mod parsing {
     struct Field {
         ident: Ident,
         eq: Token![=],
-        value: LitStr,
+        value: Lit,
     }
 
     impl Parse for Field {
