@@ -3,7 +3,7 @@
 #[macro_use]
 extern crate doubter;
 
-doubter! {
-    include = "README.md",
+generate_doc_tests! {
+    include = "foo.md",
     use_external_doc = true,
 }

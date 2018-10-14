@@ -9,6 +9,6 @@ repository = "https://github.com/ubnt-intrepid/doubter.git"
 bytecount = "0.3.2"
 glob = "0.2.11"
 proc-macro2 = "0.4.20"
-pulldown-cmark = "0.1.2"
+pulldown-cmark = { version = "0.1.2", default-features = false }
 quote = "0.6"
 syn = { version = "0.15", features = ["full", "extra-traits"] }

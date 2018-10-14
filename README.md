@@ -6,84 +6,108 @@
 
 A helper crate for testing Rust code blocks in Markdown.
 
-## Status
-Experimental (see also [the roadmap issue](https://github.com/ubnt-intrepid/doubter/issues/2))
+## Overview
 
-## Usage
+This crate executes the code blocks in Markdown files by embedding them into
+the Rust source and builds as a crate.
+The advantage of this approach is that the dependency resolution are done by `cargo`.
+This means that that dependency problems associated with updating the Rust toolchain do not occur.
 
-At first, create a new crate for testing Markdown files.
-This crate must be separated from all published crates.
+## Getting Started
 
-Next, add the dependencies for `doubter` to `Cargo.toml`.
-If some external crates are used in some code blocks, specify it as `[dev-dependencies]`:
+`doubter` embeds the target Markdown files into the Rust code as the *public* doc comments.
+Therefore, it is necessary to create a new crate for testing code blocks separately from the published crates.
+This crate(s) are usually registered in `[workspace.members]`.
+
+### With Procedural Macros
+
+Add the dependencies for `doubter` to `Cargo.toml`.
+If some external crates are required in code blocks, specify them as the members of `[dev-dependencies]`:
 
 ```toml
 [dependencies]
 doubter = "0.0.6"
 
 [dev-dependencies]
-# put here additional dependencies used in code blocks.
-rand = "*"
-# ...
+rand = "0.5"
 ```
 
-Finally modify `src/lib.rs` to specify the path to target Markdown files.
-All paths specified here must be the relative path from Cargo's manifest directory.
+Then, modify `src/lib.rs` to specify the path to target Markdown files.
 
 ```rust
 #[macro_use]
 extern crate doubter;
 
-doubter! {
+generate_doc_files! {
     include = "README.md",
     include = "docs/**/*.md",
 }
 ```
 
-The macro `doubter!()` takes a comma-separated list of fields.
+The macro `generate_doc_tests!(...)` takes a comma-separated list of fields.
 The following field keys are currently supported:
 
-* `include` - string literal  
+* `include` - string  
   A glob pattern that points to the path to the Markdown file(s) to be tested.
   Required to be a relative path from cargo's manifest directory.
-* `mode` - string literal, optional  
+* `mode` - string, optional  
   The mode to convert Markdown files to doctest.
   Supported values are as follows:
   - `"raw"` (default) : embeds the Markdown files in Rust source *as it is*.
   - `"extract"` : extracts code blocks and emit as doctest *per blocks*.
-* `use_external_doc` - string/bool literal, optional
+* `use_external_doc` - string or boolean, optional  
   Specify whether to use `#[doc(include = "...")]` to embed Markdown files.
   When this filed is enabled, the value of `mode` is forced to `"raw"`.
 
-## Implementation Details
+### With Build Script
 
-This crate emulates the behavior of unstable feature `#[doc(include = "...")]`
-by using the procedural macros, and runs code blocks by embedding the the Markdown files in Rust source code.
+There are some restrictions on the use of procedural macros
+(for example, literals passed to the field cannot be calculated by using another macros).
+`doubter` provides a low level API for generating test codes from `build.rs`.
 
-For example, the macro call
+At first, moves the dependency on `doubter` to `[build-dependencies]`:
+
+```diff
+-[dependencies]
++[build-dependencies]
+doubter = "0.0.6"
+```
+
+The code for generating test cases in `build.rs` looks like as follows:
 
 ```rust
-doubter! {
-    include = "README.md",
+extern crate doubter;
+
+fn main() {
+    let config = doubter::Config {
+        includes: vec![...],
+        mode: None,
+        use_external_doc: false,
+    };
+
+    let out_path = std::env::var_os("OUT_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap()
+        .join("doubter-tests.rs");
+
+    let mut file = std::fs::OpenOptions::new()
+        .write(true).create(true).truncate(true)
+        .open(out_path)
+        .unwrap();
+
+    doubter::generate_doc_tests(config, &mut file).unwrap();
 }
 ```
 
-is roughly expanded to the following code:
+Finally, includes the generated source into `lib.rs` as follows:
 
 ```rust
-pub mod doctests {
-    pub mod readme_md {
-        // ...
-        // The content of README.md converted to doc comment
-        // ...
-    }
-}
+include!(concat!(env!("OUT_DIR"), "/doubter-tests.rs"));
 ```
 
-## Alternatives
+## Examples
 
-* [`skeptic`](https://github.com/budziq/rust-skeptic)
-* [`docmatic`](https://github.com/assert-rs/docmatic)
+See [the test crates inside of `crates/`](https://github.com/ubnt-intrepid/doubter/tree/master/crates).
 
 ## License
-[MIT license](LICENSE)
+`doubter` is released under the [MIT license](LICENSE).

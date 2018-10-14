@@ -1,14 +1,11 @@
 use glob;
 use std::collections::HashMap;
-use std::error::Error as StdError;
 use std::ffi::OsString;
 use std::io;
 use std::iter;
 use std::path::{Path, PathBuf};
 
-fn io_error(cause: impl Into<Box<StdError + Send + Sync + 'static>>) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, cause)
-}
+use util::io_error;
 
 #[derive(Debug, Default)]
 pub struct Tree {

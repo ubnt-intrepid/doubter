@@ -9,4 +9,4 @@ name = "doctest"
 path = "lib.rs"
 
 [dependencies]
-doubter = { path = "../.." }
+doubter = { path = "../../doubter" }

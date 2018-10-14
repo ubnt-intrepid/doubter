@@ -8,5 +8,6 @@ publish = false
 name = "doctest"
 path = "lib.rs"
 
-[dependencies]
-doubter = { path = "../.." }
+[dependencies.doubter]
+path = "../../doubter"
+default-features = false

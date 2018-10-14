@@ -1,6 +1,5 @@
 use proc_macro2::TokenStream;
 use std::env;
-use std::error::Error as StdError;
 use std::fs;
 use std::io;
 use std::io::{BufWriter, Write};
@@ -13,10 +12,7 @@ use syn::Ident;
 use config::{Config, Mode};
 use extract::extract_code_blocks;
 use tree::{Dir, MarkdownFile, Node, Tree};
-
-fn io_error(cause: impl Into<Box<StdError + Send + Sync + 'static>>) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, cause)
-}
+use util::io_error;
 
 #[derive(Debug)]
 pub struct RenderContext {
@@ -26,7 +22,7 @@ pub struct RenderContext {
 }
 
 impl RenderContext {
-    pub(crate) fn init(config: Config) -> io::Result<RenderContext> {
+    pub fn init(config: Config) -> io::Result<RenderContext> {
         let root_dir = env::var_os("CARGO_MANIFEST_DIR")
             .map(PathBuf::from)
             .ok_or_else(|| io_error("the environment variable `CARGO_MANIFEST_DIR` is not set"))?;
@@ -139,12 +135,12 @@ impl<'a> Renderer<'a> {
                 for block in blocks {
                     let header = format!("```{}", block.info);
                     let content = &block.content;
-                    let const_name =
-                        Ident::new(&format!("block_line_{}", block.line), Span::call_site());
+                    let const_name = Ident::new(&format!("line_{}", block.line), Span::call_site());
                     self.tokens.append_all(quote!{
                         #[doc = #header]
                         #(#[doc = #content])*
                         #[doc = "```"]
+                        #[allow(non_upper_case_globals)]
                         pub const #const_name: () = ();
                     });
                 }

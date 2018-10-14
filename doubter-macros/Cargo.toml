@@ -13,5 +13,5 @@ proc-macro = true
 
 [dependencies]
 doubter-impl = { version = "0.0.6", path = "../doubter-impl" }
-proc-macro-hack = "0.4"
+proc-macro-hack = { version = "0.4", optional = true }
 proc-macro2 = "0.4.20"
