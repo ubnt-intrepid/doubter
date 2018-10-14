@@ -2,9 +2,11 @@
 
 [![crates.io](https://img.shields.io/crates/v/doubter.svg)](https://crates.io/crates/doubter)
 [![Docs.rs](https://docs.rs/doubter/badge.svg)](https://docs.rs/doubter)
+[![Master Doc](https://img.shields.io/badge/docs-master-blue.svg)](https://ubnt-intrepid.github.io/doubter)
+[![Rustc Version](https://img.shields.io/badge/rustc-1.22.1+-lightgray.svg)](https://www.rust-lang.org)
 [![Build Status](https://travis-ci.org/ubnt-intrepid/doubter.svg?branch=master)](https://travis-ci.org/ubnt-intrepid/doubter)
 
-A helper crate for testing Rust code blocks in Markdown.
+Test Rust code blocks in your Markdown files.
 
 ## Overview
 
@@ -19,7 +21,7 @@ This means that that dependency problems associated with updating the Rust toolc
 Therefore, it is necessary to create a new crate for testing code blocks separately from the published crates.
 This crate(s) are usually registered in `[workspace.members]`.
 
-### With Procedural Macros
+### Using Procedural Macros
 
 Add the dependencies for `doubter` to `Cargo.toml`.
 If some external crates are required in code blocks, specify them as the members of `[dev-dependencies]`:
@@ -38,7 +40,7 @@ Then, modify `src/lib.rs` to specify the path to target Markdown files.
 #[macro_use]
 extern crate doubter;
 
-generate_doc_files! {
+generate_doc_tests! {
     include = "README.md",
     include = "docs/**/*.md",
 }
@@ -59,7 +61,7 @@ The following field keys are currently supported:
   Specify whether to use `#[doc(include = "...")]` to embed Markdown files.
   When this filed is enabled, the value of `mode` is forced to `"raw"`.
 
-### With Build Script
+### Using Custom Build Script (a.k.a `build.rs`)
 
 There are some restrictions on the use of procedural macros
 (for example, literals passed to the field cannot be calculated by using another macros).
@@ -107,7 +109,7 @@ include!(concat!(env!("OUT_DIR"), "/doubter-tests.rs"));
 
 ## Examples
 
-See [the test crates inside of `crates/`](https://github.com/ubnt-intrepid/doubter/tree/master/crates).
+See the test crates [inside of `crates/`](https://github.com/ubnt-intrepid/doubter/tree/master/crates).
 
 ## License
 `doubter` is released under the [MIT license](LICENSE).

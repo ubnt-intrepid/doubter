@@ -5,7 +5,7 @@ authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"
 description = "A helper crate for testing Rust code blocks in Markdown"
-readme = "README.md"
+readme = "../README.md"
 
 include = [
   "/src/**/*.rs",
@@ -14,8 +14,6 @@ include = [
   "/benches/**/*.rs",
   "/build.rs",
   "/Cargo.toml",
-  "/LICENSE",
-  "/README.md",
 ]
 
 [lib]
