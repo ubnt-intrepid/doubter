@@ -1,5 +1,7 @@
-use proc_macro2::Span;
+use std::fmt;
 use std::str::FromStr;
+
+use proc_macro2::Span;
 use syn;
 use syn::parse;
 use syn::parse::{Parse, ParseStream};
@@ -79,7 +81,10 @@ impl Parse for Config {
     }
 }
 
-fn parse_error(message: impl ::std::fmt::Display) -> parse::Error {
+fn parse_error<D>(message: D) -> parse::Error
+where
+    D: fmt::Display,
+{
     parse::Error::new(Span::call_site(), message)
 }
 

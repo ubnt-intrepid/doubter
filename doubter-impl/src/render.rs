@@ -1,6 +1,5 @@
 use proc_macro2::TokenStream;
 use std::env;
-use std::fs;
 use std::io;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
@@ -12,7 +11,7 @@ use syn::Ident;
 use config::{Config, Mode};
 use extract::extract_code_blocks;
 use tree::{Dir, MarkdownFile, Node, Tree};
-use util::io_error;
+use util::{io_error, read_to_string};
 
 #[derive(Debug)]
 pub struct RenderContext {
@@ -47,7 +46,10 @@ impl RenderContext {
         }
     }
 
-    pub fn write(&self, writer: &mut impl Write) -> io::Result<()> {
+    pub fn write<W>(&self, writer: &mut W) -> io::Result<()>
+    where
+        W: Write,
+    {
         let mut tokens = TokenStream::new();
         self.render(&mut tokens)?;
 
@@ -94,7 +96,7 @@ impl<'a> Renderer<'a> {
     }
 
     fn render_node(&mut self, node: &Node) -> io::Result<()> {
-        match node {
+        match *node {
             Node::Dir(ref dir) => self.render_dir(dir),
             Node::File(ref file) => self.render_file(file),
         }
@@ -124,12 +126,12 @@ impl<'a> Renderer<'a> {
                     let path = file.path.to_string_lossy();
                     self.tokens.append_all(quote!(#![doc(include = #path)]));
                 } else {
-                    let content = fs::read_to_string(&file.path)?;
+                    let content = read_to_string(&file.path)?;
                     self.tokens.append_all(quote!(#![doc = #content]));
                 }
             }
             Mode::Extract => {
-                let content = fs::read_to_string(&file.path)?;
+                let content = read_to_string(&file.path)?;
                 let blocks = extract_code_blocks(&content);
 
                 for block in blocks {
@@ -151,6 +153,8 @@ impl<'a> Renderer<'a> {
 }
 
 mod sanitize {
+    #[allow(unused_imports, deprecated)]
+    use std::ascii::AsciiExt;
     use std::ffi::OsStr;
 
     pub fn sanitize<S>(s: S) -> String

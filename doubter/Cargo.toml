@@ -23,7 +23,7 @@ path = "lib.rs"
 [dependencies]
 proc-macro-hack = { version = "0.4", optional = true }
 doubter-impl = { version = "0.0.6", path = "../doubter-impl" }
-doubter-macros = { version = "0.0.6", path = "../doubter-macros" }
+doubter-macros = { version = "0.0.6", path = "../doubter-macros", default-features = false }
 
 [features]
 default = ["hack"]

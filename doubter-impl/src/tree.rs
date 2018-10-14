@@ -1,4 +1,5 @@
 use glob;
+use std::collections::hash_map;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::io;
@@ -32,7 +33,10 @@ impl Tree {
         Ok(())
     }
 
-    fn insert(&mut self, path: impl AsRef<Path>, file: MarkdownFile) {
+    fn insert<P>(&mut self, path: P, file: MarkdownFile)
+    where
+        P: AsRef<Path>,
+    {
         let mut current_dir = &mut self.root;
         let mut iter = path.as_ref().iter().peekable();
 
@@ -59,14 +63,15 @@ pub struct Dir {
 }
 
 impl Dir {
+    #[cfg_attr(feature = "cargo-clippy", allow(match_ref_pats))]
     fn insert_subdir(&mut self, name: OsString) -> &mut Self {
         match { self }.inner.entry(name).or_insert_with(|| {
             Node::Dir(Dir {
                 inner: Default::default(),
             })
         }) {
-            Node::Dir(ref mut dir) => dir,
-            Node::File(..) => unreachable!(),
+            &mut Node::Dir(ref mut dir) => dir,
+            &mut Node::File(..) => unreachable!(),
         }
     }
 
@@ -74,7 +79,7 @@ impl Dir {
         self.inner.insert(name, Node::File(file));
     }
 
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = (&'a OsString, &'a Node)> + 'a {
+    pub fn iter(&self) -> hash_map::Iter<OsString, Node> {
         self.inner.iter()
     }
 }
