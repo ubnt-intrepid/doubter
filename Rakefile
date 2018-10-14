@@ -1,14 +1,15 @@
 require 'rake'
 
 task :nightly_test do
-    sh "cargo test --verbose -p doctest-nightly"
+    sh "cargo test -p doctest-nightly"
 end
 
 task :test do
-    sh "cargo test --verbose"
-    sh "cargo test --verbose -p doubter-impl"
-    sh "cargo test --verbose -p doctest"
-    sh "cargo test --verbose -p doctest-script"
+    sh "cargo test"
+    sh "cargo test -p doubter-impl"
+    sh "cargo test -p doctest"
+    sh "cargo test -p doctest-extract"
+    sh "cargo test -p doctest-script"
 end
 
 task :install_hooks do

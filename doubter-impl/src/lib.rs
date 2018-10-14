@@ -1,14 +1,17 @@
+extern crate bytecount;
 extern crate glob;
 #[macro_use]
 extern crate proc_macro_hack;
 extern crate proc_macro;
 extern crate proc_macro2;
+extern crate pulldown_cmark;
 #[macro_use]
 extern crate quote;
 #[macro_use]
 extern crate syn;
 
 mod config;
+mod extract;
 mod render;
 mod tree;
 

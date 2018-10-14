@@ -7,6 +7,9 @@ branches:
 cache:
   - cargo: true
 
+env:
+  - CARGO_TERM_VERBOSE=true
+
 matrix:
   allow_failures:
     - rust: nightly

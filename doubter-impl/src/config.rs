@@ -9,6 +9,7 @@ pub struct Config {
 pub enum Mode {
     Default,
     ExternalDoc,
+    Extract,
 }
 
 mod parsing {
@@ -43,6 +44,7 @@ mod parsing {
                     "mode" => match field.value.value().trim() {
                         "default" => mode = Some(Mode::Default),
                         "external-doc" => mode = Some(Mode::ExternalDoc),
+                        "extract" => mode = Some(Mode::Extract),
                         s => return Err(parse_error(format!("invalid mode: {:?}", s))),
                     },
                     s => return Err(parse_error(format!("invalid key: {:?}", s))),
