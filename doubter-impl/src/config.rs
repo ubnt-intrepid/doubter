@@ -3,7 +3,6 @@ pub struct Config {
     pub includes: Vec<String>,
     pub mode: Option<Mode>,
     pub use_external_doc: bool,
-    _priv: (),
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -15,13 +14,19 @@ pub enum Mode {
 mod parsing {
     use super::{Config, Mode};
 
-    use proc_macro2::Span;
+    use proc_macro2::{Span, TokenStream};
     use std::str::FromStr;
     use syn;
     use syn::parse;
     use syn::parse::{Parse, ParseStream};
     use syn::punctuated::Punctuated;
     use syn::{Ident, Lit};
+
+    impl Config {
+        pub fn from_tokens(input: TokenStream) -> parse::Result<Self> {
+            syn::parse2(input)
+        }
+    }
 
     impl FromStr for Config {
         type Err = parse::Error;
@@ -81,7 +86,6 @@ mod parsing {
                 includes,
                 mode,
                 use_external_doc,
-                _priv: (),
             })
         }
     }

@@ -1,0 +1,12 @@
+[package]
+name = "doctest-edition2018"
+version = "0.0.0"
+authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
+publish = false
+
+[lib]
+name = "doctest"
+path = "lib.rs"
+
+[dependencies]
+doubter = { path = "../.." }

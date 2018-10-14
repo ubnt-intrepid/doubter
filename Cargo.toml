@@ -21,7 +21,10 @@ include = [
 [workspace]
 members = [
   "doubter-impl",
+  "doubter-macros",
+
   "crates/doctest",
+  "crates/doctest-edition2018",
   "crates/doctest-extract",
   "crates/doctest-script",
   "crates/doctest-nightly",
@@ -30,6 +33,7 @@ members = [
 [dependencies]
 proc-macro-hack = "0.4"
 doubter-impl = { version = "0.0.6", path = "doubter-impl" }
+doubter-macros = { version = "0.0.6", path = "doubter-macros" }
 
 [dev-dependencies.cargo-husky]
 version = "1"
