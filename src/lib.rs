@@ -1,6 +1,6 @@
 //! A helper crate for testing Rust code blocks in Markdown.
 
-#![doc(html_root_url = "https://docs.rs/doubter/0.0.5")]
+#![doc(html_root_url = "https://docs.rs/doubter/0.0.6")]
 
 #[macro_use]
 extern crate proc_macro_hack;

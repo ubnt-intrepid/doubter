@@ -1,3 +1,12 @@
+<a name="0.0.6"></a>
+### 0.0.6 (2018-10-14)
+
+* remove feature flag `external-doc`
+  - use the field `use_external_doc` in `doubter!()` instead
+* add initial support for build script
+* add support for files outside of `CARGO_MANIFEST_DIR`
+* add mode to extract code blocks in Markdown
+
 <a name="0.0.5"></a>
 ### 0.0.5 (2018-10-13)
 

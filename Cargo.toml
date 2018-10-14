@@ -1,11 +1,22 @@
 [package]
 name = "doubter"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"
 description = "A helper crate for testing Rust code blocks in Markdown"
 readme = "README.md"
+
+include = [
+  "/src/**/*.rs",
+  "/tests/**/*.rs",
+  "/examples/**/*.rs",
+  "/benches/**/*.rs",
+  "/build.rs",
+  "/Cargo.toml",
+  "/LICENSE",
+  "/README.md",
+]
 
 [workspace]
 members = [
@@ -18,7 +29,7 @@ members = [
 
 [dependencies]
 proc-macro-hack = "0.4"
-doubter-impl = { version = "0.0.5", path = "doubter-impl" }
+doubter-impl = { version = "0.0.6", path = "doubter-impl" }
 
 [dev-dependencies.cargo-husky]
 version = "1"
