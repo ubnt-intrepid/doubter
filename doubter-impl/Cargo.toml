@@ -4,15 +4,10 @@ version = "0.0.6"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"
-description = "Procedural macros for doubter"
-
-[lib]
-proc-macro = true
 
 [dependencies]
 bytecount = "0.3.2"
 glob = "0.2.11"
-proc-macro-hack = "0.4"
 proc-macro2 = "0.4.20"
 pulldown-cmark = "0.1.2"
 quote = "0.6"

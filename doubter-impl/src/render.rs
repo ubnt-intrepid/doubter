@@ -3,6 +3,7 @@ use std::env;
 use std::error::Error as StdError;
 use std::fs;
 use std::io;
+use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 
 use proc_macro2::Span;
@@ -48,6 +49,14 @@ impl RenderContext {
         } else {
             self.config.mode.unwrap_or_else(|| Mode::Raw)
         }
+    }
+
+    pub fn write(&self, writer: &mut impl Write) -> io::Result<()> {
+        let mut tokens = TokenStream::new();
+        self.render(&mut tokens)?;
+
+        let mut writer = BufWriter::new(writer);
+        writer.write_all(tokens.to_string().as_bytes())
     }
 
     pub fn render(&self, tokens: &mut TokenStream) -> io::Result<()> {

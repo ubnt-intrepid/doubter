@@ -22,7 +22,8 @@ matrix:
         - cargo update && cargo fmt -- --check && rake
     - rust: beta
       script:
-        - cargo update && rake
+        - patch crates/doctest-edition2018/{Cargo.toml,Cargo.toml.patch}
+        - cargo update && rake test edition2018_test
     - rust: nightly
       script:
         - cargo update && rake test nightly_test
