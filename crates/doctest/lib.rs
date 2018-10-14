@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate doubter;
 
-doubter! {
-    include = "README.md",
+generate_doc_tests! {
+    include = "foo.md",
     include = "doc/**/*.md",
     include = "../docs/**/*.md",
 }

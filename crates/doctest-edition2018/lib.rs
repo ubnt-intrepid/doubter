@@ -1,3 +1,3 @@
 doubter::generate_doc_tests! {
-    include = "README.md",
+    include = "foo.md",
 }
