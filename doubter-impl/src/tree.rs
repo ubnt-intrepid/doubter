@@ -126,22 +126,16 @@ mod normalize_path {
     #[test]
     fn test_normalize_path() {
         assert_eq!(
-            normalize_path("/path/to/a/b.md", "/path/to")
-                .unwrap()
-                .to_string_lossy(),
-            "a/b.md"
+            normalize_path("/path/to/a/b.md", "/path/to").unwrap(),
+            Path::new("a/b.md")
         );
         assert_eq!(
-            normalize_path("/path/to/a/b.md", "/path/to/c")
-                .unwrap()
-                .to_string_lossy(),
-            "../a/b.md"
+            normalize_path("/path/to/a/b.md", "/path/to/c").unwrap(),
+            Path::new("../a/b.md")
         );
         assert_eq!(
-            normalize_path("/path/to/a/b.md", "/foo/bar")
-                .unwrap()
-                .to_string_lossy(),
-            "../../path/to/a/b.md"
+            normalize_path("/path/to/a/b.md", "/foo/bar").unwrap(),
+            Path::new("../../path/to/a/b.md")
         );
     }
 }
