@@ -12,7 +12,7 @@ extern crate doubter_macros as macros;
 extern crate proc_macro_hack;
 
 #[doc(inline)]
-pub use imp::public::*;
+pub use imp::public::{generate_doc_tests, Config, Mode};
 #[doc(hidden)]
 pub use macros::*;
 
