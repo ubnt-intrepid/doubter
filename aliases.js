@@ -1,0 +1,14 @@
+var ALIASES = {};
+ALIASES['bitflags'] = {};
+ALIASES['bytecount'] = {};
+ALIASES['doubter'] = {};
+ALIASES['doubter_impl'] = {};
+ALIASES['doubter_macros'] = {};
+ALIASES['glob'] = {};
+ALIASES['proc_macro2'] = {};
+ALIASES['proc_macro_hack'] = {};
+ALIASES['proc_macro_hack_impl'] = {};
+ALIASES['pulldown_cmark'] = {};
+ALIASES['quote'] = {};
+ALIASES['syn'] = {};
+ALIASES['unicode_xid'] = {};

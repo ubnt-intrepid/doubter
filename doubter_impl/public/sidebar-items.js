@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Mode",""]],"fn":[["generate_doc_tests","Generates a code from the given configuration."]],"struct":[["Config",""]]});
