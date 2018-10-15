@@ -56,7 +56,6 @@ matrix:
 
     - rust: beta
       script: >-
-        patch crates/doctest-edition2018/{Cargo.toml,Cargo.toml.patch} &&
         cargo update &&
         rake test test_edition2018
 
