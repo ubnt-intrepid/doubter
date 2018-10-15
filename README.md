@@ -28,7 +28,7 @@ If some external crates are required in code blocks, specify them as the members
 
 ```toml
 [dependencies]
-doubter = "0.0.6"
+doubter = "0.1.0"
 
 [dev-dependencies]
 rand = "0.5"
@@ -70,7 +70,7 @@ The following field keys are currently supported:
 >
 > ```toml
 > [dependencies.doubter]
-> version = "0.0.6"
+> version = "0.1.0"
 > default-features = false
 > ```
 >
@@ -86,7 +86,7 @@ At first, moves the dependency on `doubter` to `[build-dependencies]`:
 ```diff
 -[dependencies]
 +[build-dependencies]
-doubter = "0.0.6"
+doubter = "0.1.0"
 ```
 
 The code for generating test cases in `build.rs` looks like as follows:

@@ -1,6 +1,6 @@
 //! A helper crate for testing Rust code blocks in Markdown.
 
-#![doc(html_root_url = "https://docs.rs/doubter/0.0.6")]
+#![doc(html_root_url = "https://docs.rs/doubter/0.1.0")]
 
 extern crate doubter_impl as imp;
 #[allow(unused_imports)]

@@ -1,3 +1,8 @@
+<a name="0.1.0"></a>
+## 0.1.0 (2018-10-15)
+
+The initial release of current iteration
+
 <a name="0.0.6"></a>
 ### 0.0.6 (2018-10-14)
 

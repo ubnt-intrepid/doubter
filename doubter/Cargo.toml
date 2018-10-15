@@ -1,6 +1,6 @@
 [package]
 name = "doubter"
-version = "0.0.6"
+version = "0.1.0"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"
@@ -13,6 +13,7 @@ include = [
   "/examples/**/*.rs",
   "/benches/**/*.rs",
   "/build.rs",
+  "/lib.rs",
   "/Cargo.toml",
 ]
 
@@ -22,8 +23,8 @@ path = "lib.rs"
 
 [dependencies]
 proc-macro-hack = { version = "0.4", optional = true }
-doubter-impl = { version = "0.0.6", path = "../doubter-impl" }
-doubter-macros = { version = "0.0.6", path = "../doubter-macros", default-features = false }
+doubter-impl = { version = "0.1.0", path = "../doubter-impl" }
+doubter-macros = { version = "0.1.0", path = "../doubter-macros", default-features = false }
 
 [features]
 default = ["hack"]
