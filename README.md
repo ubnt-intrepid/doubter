@@ -61,6 +61,20 @@ The following field keys are currently supported:
   Specify whether to use `#[doc(include = "...")]` to embed Markdown files.
   When this filed is enabled, the value of `mode` is forced to `"raw"`.
 
+>
+> Currently, the implementation of function style procedural macro is using `proc-macro-hack`.
+> The definition of procedural macro via custom Derive has some restrictions and the `use`-style
+> import does not work as expected.
+> You can switch the implementation to the Macros 1.2 by disabling the feature flag `hack`
+> (this feature flag is enabled by default):
+>
+> ```toml
+> [dependencies.doubter]
+> version = "0.0.6"
+> default-features = false
+> ```
+>
+
 ### Using Custom Build Script (a.k.a `build.rs`)
 
 There are some restrictions on the use of procedural macros
