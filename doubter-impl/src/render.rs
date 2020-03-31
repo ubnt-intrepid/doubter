@@ -61,7 +61,8 @@ impl RenderContext {
         (Renderer {
             context: self,
             tokens,
-        }).render_tree(&self.tree)
+        })
+        .render_tree(&self.tree)
     }
 }
 
@@ -138,7 +139,7 @@ impl<'a> Renderer<'a> {
                     let header = format!("```{}", block.info);
                     let content = &block.content;
                     let const_name = Ident::new(&format!("line_{}", block.line), Span::call_site());
-                    self.tokens.append_all(quote!{
+                    self.tokens.append_all(quote! {
                         #[doc = #header]
                         #(#[doc = #content])*
                         #[doc = "```"]
