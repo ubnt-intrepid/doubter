@@ -5,13 +5,13 @@ use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 
 use proc_macro2::Span;
-use quote::TokenStreamExt;
+use quote::{quote, TokenStreamExt};
 use syn::Ident;
 
-use config::{Config, Mode};
-use extract::extract_code_blocks;
-use tree::{Dir, MarkdownFile, Node, Tree};
-use util::{io_error, read_to_string};
+use crate::config::{Config, Mode};
+use crate::extract::extract_code_blocks;
+use crate::tree::{Dir, MarkdownFile, Node, Tree};
+use crate::util::{io_error, read_to_string};
 
 #[derive(Debug)]
 pub struct RenderContext {

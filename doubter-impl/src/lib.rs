@@ -1,13 +1,3 @@
-extern crate bytecount;
-extern crate glob;
-extern crate proc_macro;
-extern crate proc_macro2;
-extern crate pulldown_cmark;
-#[macro_use]
-extern crate quote;
-#[macro_use]
-extern crate syn;
-
 mod config;
 mod extract;
 mod render;
@@ -17,11 +7,10 @@ mod util;
 // not a public API.
 #[doc(hidden)]
 pub mod private {
-    pub use config::Config;
-    pub use render::RenderContext;
+    pub use crate::config::Config;
+    pub use crate::render::RenderContext;
 
     use proc_macro2::TokenStream;
-    use syn;
 
     pub fn parse_config<T>(input: T) -> syn::parse::Result<Config>
     where
@@ -32,11 +21,10 @@ pub mod private {
 }
 
 pub mod public {
+    use crate::render::RenderContext;
     use std::io;
 
-    use render::RenderContext;
-
-    pub use config::{Config, Mode};
+    pub use crate::config::{Config, Mode};
 
     /// Generates a code from the given configuration.
     ///

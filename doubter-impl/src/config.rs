@@ -6,7 +6,7 @@ use syn;
 use syn::parse;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{Ident, Lit};
+use syn::{Ident, Lit, Token};
 
 #[derive(Debug, Copy, Clone)]
 pub enum Mode {

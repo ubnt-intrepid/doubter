@@ -18,7 +18,6 @@ members = [
   "doubter-macros",
 
   "crates/doctest",
-  "crates/doctest-edition2018",
   "crates/doctest-extract",
   "crates/doctest-script",
   "crates/doctest-nightly",

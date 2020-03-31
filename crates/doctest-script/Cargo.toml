@@ -3,6 +3,7 @@ name = "doctest-script"
 version = "0.0.0"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 publish = false
+edition = "2018"
 
 build = "build.rs"
 

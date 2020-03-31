@@ -1,11 +1,13 @@
 [package]
 name = "doubter"
-version = "0.1.0"
+version = "0.2.0-dev"
+publish = false
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"
 description = "A helper crate for testing Rust code blocks in Markdown"
 readme = "../README.md"
+edition = "2018"
 
 include = [
   "/src/**/*.rs",
@@ -22,12 +24,5 @@ name = "doubter"
 path = "lib.rs"
 
 [dependencies]
-proc-macro-hack = { version = "0.4", optional = true }
-doubter-impl = { version = "0.1.0", path = "../doubter-impl" }
-doubter-macros = { version = "0.1.0", path = "../doubter-macros", default-features = false }
-
-[features]
-default = ["hack"]
-
-# uses `proc-macro-hack` to define the procedural macro using only Macros 1.1.
-hack = ["proc-macro-hack", "doubter-macros/proc-macro-hack"]
+doubter-impl = { version = "=0.2.0-dev", path = "../doubter-impl" }
+doubter-macros = { version = "=0.2.0-dev", path = "../doubter-macros" }

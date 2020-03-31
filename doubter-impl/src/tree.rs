@@ -1,12 +1,10 @@
-use glob;
+use crate::util::io_error;
 use std::collections::hash_map;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::io;
 use std::iter;
 use std::path::{Path, PathBuf};
-
-use util::io_error;
 
 #[derive(Debug, Default)]
 pub struct Tree {

@@ -1,10 +1,11 @@
 [package]
 name = "doubter-impl"
-version = "0.1.0"
+version = "0.2.0-dev"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"
 description = "Internal implementation of doubter"
+edition = "2018"
 
 [dependencies]
 bytecount = "0.3.2"

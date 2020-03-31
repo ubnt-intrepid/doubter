@@ -1,10 +1,11 @@
 [package]
 name = "doubter-macros"
-version = "0.1.0"
+version = "0.2.0-dev"
 authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/ubnt-intrepid/doubter.git"
 description = "Procedural macros for doubter"
+edition = "2018"
 
 [lib]
 name = "doubter_macros"
@@ -12,9 +13,5 @@ path = "lib.rs"
 proc-macro = true
 
 [dependencies]
-doubter-impl = { version = "0.1.0", path = "../doubter-impl" }
-proc-macro-hack = { version = "0.4", optional = true }
+doubter-impl = { version = "=0.2.0-dev", path = "../doubter-impl" }
 proc-macro2 = "0.4.20"
-
-[features]
-default = ["proc-macro-hack"]

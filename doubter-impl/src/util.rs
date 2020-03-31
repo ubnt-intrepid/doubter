@@ -6,7 +6,7 @@ use std::path::Path;
 
 pub fn io_error<E>(cause: E) -> io::Error
 where
-    E: Into<Box<StdError + Send + Sync + 'static>>,
+    E: Into<Box<dyn StdError + Send + Sync + 'static>>,
 {
     io::Error::new(io::ErrorKind::Other, cause)
 }

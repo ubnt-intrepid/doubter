@@ -76,7 +76,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --workspace --exclude doctest-nightly --exclude doctest-edition2018
+        args: --workspace --exclude doctest-nightly
 
     - name: Run tests (nightly)
       uses: actions-rs/cargo@v1
@@ -84,9 +84,3 @@ jobs:
         command: test
         args: --manifest-path crates/doctest-nightly/Cargo.toml
       if: contains(runner.os, 'nightly')
-
-    - name: Run tests (edition 2018)
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --manifest-path crates/doctest-edition2018/Cargo.toml
