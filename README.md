@@ -124,5 +124,9 @@ include!(concat!(env!("OUT_DIR"), "/doubter-tests.rs"));
 
 See the test crates [inside of `crates/`](https://github.com/ubnt-intrepid/doubter/tree/master/crates).
 
+## Alternatives
+
+* [`doc-comment`](https://github.com/GuillaumeGomez/doc-comment)
+
 ## License
 `doubter` is released under the [MIT license](LICENSE).
