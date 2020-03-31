@@ -1,21 +1,44 @@
 [package]
-name = "dummy"
-version = "0.0.0"
+name = "doubter"
+version = "0.2.0-dev"
 publish = false
+authors = ["Yusuke Sasaki <yusuke.sasaki.nuem@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/ubnt-intrepid/doubter.git"
+description = "A helper crate for testing Rust code blocks in Markdown"
+readme = "README.md"
+edition = "2018"
+
+include = [
+  "/src/**/*.rs",
+  "/tests/**/*.rs",
+  "/examples/**/*.rs",
+  "/benches/**/*.rs",
+  "/build.rs",
+  "/lib.rs",
+  "/Cargo.toml",
+]
 
 [lib]
-path = ".empty.rs"
+proc-macro = true
 
-[dependencies.cargo-husky]
+[dependencies]
+syn = { version = "0.15", features = ["full", "extra-traits"] }
+proc-macro2 = "0.4.20"
+quote = "0.6"
+
+bytecount = "0.3.2"
+glob = "0.2.11"
+pulldown-cmark = { version = "0.1.2", default-features = false }
+
+[dev-dependencies.cargo-husky]
 version = "1"
 default-features = false
 features = ["user-hooks"]
 
 [workspace]
 members = [
-  "doubter",
-  "doubter-impl",
-  "doubter-macros",
+  ".",
 
   "crates/doctest",
   "crates/doctest-extract",

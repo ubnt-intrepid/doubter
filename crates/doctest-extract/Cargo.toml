@@ -11,4 +11,4 @@ path = "lib.rs"
 doc = false
 
 [dependencies]
-doubter = { path = "../../doubter" }
+doubter = { path = "../.." }

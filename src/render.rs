@@ -46,6 +46,7 @@ impl RenderContext {
         }
     }
 
+    #[allow(dead_code)]
     pub fn write<W>(&self, writer: &mut W) -> io::Result<()>
     where
         W: Write,
