@@ -74,52 +74,6 @@ The following field keys are currently supported:
 > ```
 >
 
-### Using Custom Build Script (a.k.a `build.rs`)
-
-There are some restrictions on the use of procedural macros
-(for example, literals passed to the field cannot be calculated by using another macros).
-`doubter` provides a low level API for generating test codes from `build.rs`.
-
-At first, moves the dependency on `doubter` to `[build-dependencies]`:
-
-```diff
--[dependencies]
-+[build-dependencies]
-doubter = "0.1.0"
-```
-
-The code for generating test cases in `build.rs` looks like as follows:
-
-```rust
-extern crate doubter;
-
-fn main() {
-    let config = doubter::Config {
-        includes: vec![...],
-        mode: None,
-        use_external_doc: false,
-    };
-
-    let out_path = std::env::var_os("OUT_DIR")
-        .map(std::path::PathBuf::from)
-        .unwrap()
-        .join("doubter-tests.rs");
-
-    let mut file = std::fs::OpenOptions::new()
-        .write(true).create(true).truncate(true)
-        .open(out_path)
-        .unwrap();
-
-    doubter::generate_doc_tests(config, &mut file).unwrap();
-}
-```
-
-Finally, includes the generated source into `lib.rs` as follows:
-
-```rust
-include!(concat!(env!("OUT_DIR"), "/doubter-tests.rs"));
-```
-
 ## Examples
 
 See the test crates [inside of `crates/`](https://github.com/ubnt-intrepid/doubter/tree/master/crates).

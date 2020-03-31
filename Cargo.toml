@@ -19,6 +19,5 @@ members = [
 
   "crates/doctest",
   "crates/doctest-extract",
-  "crates/doctest-script",
   "crates/doctest-nightly",
 ]
