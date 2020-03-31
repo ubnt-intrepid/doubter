@@ -4,7 +4,6 @@
 [![Docs.rs](https://docs.rs/doubter/badge.svg)](https://docs.rs/doubter)
 [![Master Doc](https://img.shields.io/badge/docs-master-blue.svg)](https://ubnt-intrepid.github.io/doubter)
 [![Rustc Version](https://img.shields.io/badge/rustc-1.22.1+-lightgray.svg)](https://www.rust-lang.org)
-[![Build Status](https://travis-ci.org/ubnt-intrepid/doubter.svg?branch=master)](https://travis-ci.org/ubnt-intrepid/doubter)
 
 Test Rust code blocks in your Markdown files.
 

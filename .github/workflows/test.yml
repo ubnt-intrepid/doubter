@@ -1,0 +1,92 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  CARGO_HUSKY_DONT_INSTALL_HOOKS: true
+  CARGO_TERM_VERBOSE: true
+  CARGO_NET_OFFLINE: true
+  RUST_BACKTRACE: full
+
+jobs:
+  Test:
+    strategy:
+      matrix:
+        conf:
+          - { toolchain: stable  , os: ubuntu-18.04   , components: "rustfmt, clippy" }
+          - { toolchain: beta    , os: ubuntu-18.04   }
+          - { toolchain: nightly , os: ubuntu-18.04   }
+          - { toolchain: 1.22.1  , os: ubuntu-18.04   } # minimum supported toolchain
+          - { toolchain: stable  , os: macos-latest   }
+          - { toolchain: stable  , os: windows-latest }
+
+    runs-on: ${{ matrix.conf.os }}
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: ${{ matrix.conf.toolchain }}
+        components: ${{ matrix.conf.components }}
+        override: true
+
+    - name: Generate Cargo.lock
+      uses: actions-rs/cargo@v1
+      with:
+        command: generate-lockfile
+      env:
+        CARGO_NET_OFFLINE: false
+    - name: Cache cargo registry
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache cargo index
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+    - name: Fetch cargo dependencies
+      uses: actions-rs/cargo@v1
+      with:
+        command: fetch
+      env:
+        CARGO_NET_OFFLINE: false
+
+    - name: Run format check
+      uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --all -- --check
+      if: contains(matrix.conf.components, 'rustfmt')
+
+    - name: Run clippy
+      uses: actions-rs/cargo@v1
+      with:
+        command: clippy
+        args: --workspace --all-targets
+      if: contains(matrix.conf.components, 'clippy')
+
+    - name: Run tests
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --workspace --exclude doctest-nightly --exclude doctest-edition2018
+
+    - name: Run tests (nightly)
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --manifest-path crates/doctest-nightly/Cargo.toml
+      if: contains(runner.os, 'nightly')
+
+    - name: Run tests (edition 2018)
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --manifest-path crates/doctest-edition2018/Cargo.toml
