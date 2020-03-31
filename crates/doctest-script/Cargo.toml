@@ -9,6 +9,7 @@ build = "build.rs"
 [lib]
 name = "doctest"
 path = "lib.rs"
+doc = false
 
 [build-dependencies]
 doubter = { path = "../../doubter" }
