@@ -20,7 +20,7 @@ jobs:
           - { toolchain: stable  , os: ubuntu-18.04   , components: "rustfmt, clippy" }
           - { toolchain: beta    , os: ubuntu-18.04   }
           - { toolchain: nightly , os: ubuntu-18.04   }
-          - { toolchain: 1.22.1  , os: ubuntu-18.04   } # minimum supported toolchain
+          - { toolchain: 1.42.0  , os: ubuntu-18.04   } # minimal supported toolchain
           - { toolchain: stable  , os: macos-latest   }
           - { toolchain: stable  , os: windows-latest }
 
